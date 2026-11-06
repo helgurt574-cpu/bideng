@@ -30,3 +30,7 @@ yedek_*/
 
 # Çevrimdışı APK'nın ses modelleri derlemede indirilir (filiz-desktop/tools/prepare_app_resources.py ile aynı kaynak)
 app/src/offline/assets/tts/*/model.onnx
+
+# Python önbelleği
+__pycache__/
+*.pyc
