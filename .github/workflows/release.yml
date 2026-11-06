@@ -35,7 +35,7 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             target: linux
-            tasks: packageDeb
+            tasks: createDistributable packageDeb
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -79,6 +79,29 @@ jobs:
       - name: Paketle
         working-directory: filiz-desktop
         run: ./gradlew --no-daemon --console=plain ${{ matrix.tasks }} -PbidengVersion="$VERSION"
+
+      - name: Linux — AppImage oluştur
+        if: matrix.target == 'linux'
+        run: |
+          APPDIR="$RUNNER_TEMP/Bideng.AppDir"
+          rm -rf "$APPDIR" && mkdir -p "$APPDIR"
+          cp -a filiz-desktop/build/compose/binaries/main/app/Bideng/. "$APPDIR/"
+          cp filiz-desktop/src/desktopMain/resources/icons/bideng.png "$APPDIR/bideng.png"
+          cat > "$APPDIR/AppRun" <<'APPRUN'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "$HERE/bin/Bideng" "$@"
+          APPRUN
+          sed -i 's/^          //' "$APPDIR/AppRun"
+          chmod +x "$APPDIR/AppRun"
+          printf '%s\n' '[Desktop Entry]' 'Type=Application' 'Name=Bideng' \
+            'Comment=Çevrimdışı sesli belge okuyucu' 'Exec=Bideng' 'Icon=bideng' \
+            'Categories=Office;Education;' 'Terminal=false' > "$APPDIR/bideng.desktop"
+          curl -sL -o "$RUNNER_TEMP/appimagetool" https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x "$RUNNER_TEMP/appimagetool"
+          mkdir -p dist
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 "$RUNNER_TEMP/appimagetool" "$APPDIR" "dist/Bideng-$VERSION-linux-x86_64.AppImage"
+          ls -la dist
 
       - name: Dosya adlarını düzenle
         run: |
