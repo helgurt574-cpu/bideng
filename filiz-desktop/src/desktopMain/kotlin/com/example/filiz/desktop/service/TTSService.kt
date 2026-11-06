@@ -15,10 +15,30 @@ import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.SourceDataLine
 
-object TTSService {
+interface SpeechEngine {
+    fun getAvailableVoices(): List<VoiceInfo>
+    fun setVoice(voiceId: String)
+    fun setSpeed(speed: Float)
+    fun setDefaultSleepTimer(minutes: Int?)
+    suspend fun speak(
+        text: String,
+        startIndex: Int = 0,
+        onStatus: (String) -> Unit = {},
+        onRange: (Int, Int) -> Unit = { _, _ -> },
+        onComplete: () -> Unit = {}
+    )
+    fun stop()
+}
+
+object TTSService : SpeechEngine {
     private var currentVoice: String = DEFAULT_EMBEDDED_VOICE.id
     private var currentSpeed: Float = 1.0f
-    private var isSpeaking: Boolean = false
+    // Her okuma kendi oturum numarasıyla çalışır; durdurulan ya da yerine yenisi başlayan
+    // okuma döngüsü kendiliğinden biter (iki sesin üst üste binmesini önler).
+    private val generation = java.util.concurrent.atomic.AtomicInteger(0)
+    @Volatile private var activeGeneration: Int = -1
+    private val isSpeaking: Boolean get() = activeGeneration >= 0
+    private fun isActive(session: Int): Boolean = activeGeneration == session
     // sherpa-onnx doğrudan JNI ile kullanılır: metin Unicode olarak gider (Windows'ta komut satırı
     // argümanları ANSI kod sayfasına çevrildiği için Türkçe/Arapça/Farsça harfler bozuluyordu).
     private var engine: OfflineTts? = null
@@ -28,21 +48,32 @@ object TTSService {
     var playbackState by mutableStateOf(TtsPlaybackState())
         private set
 
+    // Skiko (Compose) yerel kütüphanesi kendi C++ çalışma zamanını dışa açıyor; sherpa-onnx ondan sonra
+    // yüklenirse sembolleri karışıp çöküyor. Bu yüzden arayüzden önce, uygulama açılırken yüklenir.
+    fun preloadNativeLibraries() {
+        runCatching {
+            File(appHome(), "sherpa-native").takeIf { it.isDirectory }?.let {
+                System.setProperty("sherpa_onnx.native.path", it.absolutePath)
+            }
+            com.k2fsa.sherpa.onnx.LibraryUtils.load()
+        }.onFailure { it.printStackTrace() }
+    }
+
     fun initialize() {
         currentVoice = PreferenceService.getTTSVoice().ifBlank { DEFAULT_EMBEDDED_VOICE.id }
         currentSpeed = PreferenceService.getTTSSpeed()
     }
 
-    fun getAvailableVoices(): List<VoiceInfo> {
+    override fun getAvailableVoices(): List<VoiceInfo> {
         return EMBEDDED_VOICES.map { VoiceInfo(it.id, it.label, it.language) }
     }
 
-    suspend fun speak(
+    override suspend fun speak(
         text: String,
-        startIndex: Int = 0,
-        onStatus: (String) -> Unit = {},
-        onRange: (Int, Int) -> Unit = { _, _ -> },
-        onComplete: () -> Unit = {}
+        startIndex: Int,
+        onStatus: (String) -> Unit,
+        onRange: (Int, Int) -> Unit,
+        onComplete: () -> Unit
     ) = withContext(Dispatchers.IO) {
         speakWithSherpa(text, startIndex, onStatus, onRange, onComplete)
     }
@@ -54,9 +85,11 @@ object TTSService {
         onRange: (Int, Int) -> Unit,
         onComplete: () -> Unit
     ) {
-        try {
+        val session = synchronized(this) {
             stop()
-            isSpeaking = true
+            generation.incrementAndGet().also { activeGeneration = it }
+        }
+        try {
             if (defaultSleepTimerMinutes != null) {
                 setSleepTimer(defaultSleepTimerMinutes)
             }
@@ -76,7 +109,9 @@ object TTSService {
             val preflightError = preflightError(model, tokens, espeak)
             if (preflightError != null) {
                 onStatus(preflightError)
+                if (isActive(session)) activeGeneration = -1
                 playbackState = playbackState.copy(isSpeaking = false, status = preflightError)
+                onComplete()
                 return
             }
             onStatus("Dahili ses hazırlanıyor: ${voice.label}")
@@ -84,14 +119,15 @@ object TTSService {
             val tts = engineFor(voice, appHome, model, tokens, espeak)
             val segments = text.cleanForSpeechPreservingOffsets().speechSegments(startIndex)
             for (segment in segments) {
-                if (!isSpeaking) break
+                if (!isActive(session)) break
                 if (sleepTimerExpired()) {
                     onStatus("Uyku zamanlayıcısı nedeniyle durduruldu.")
                     break
                 }
                 onRange(segment.start, segment.end)
+                if (!isActive(session)) break
                 val audio = tts.generate(segment.text.toTtsArgument(), 0, currentSpeed.coerceIn(0.5f, 2.0f))
-                if (!isSpeaking) break
+                if (!isActive(session)) break
                 if (audio.samples.isNotEmpty()) {
                     onStatus("Okunuyor.")
                     playbackState = playbackState.copy(
@@ -101,29 +137,31 @@ object TTSService {
                         currentRangeStart = segment.start,
                         currentRangeEnd = segment.end
                     )
-                    playSamples(audio.samples, audio.sampleRate, segment, onRange)
+                    playSamples(audio.samples, audio.sampleRate, segment, onRange, session)
                 } else {
                     onStatus("TTS bu bölümü seslendiremedi.")
                 }
             }
-            isSpeaking = false
+            // Yerine yeni bir okuma başladıysa onun durumuna dokunma
+            if (!isActive(session)) return
+            activeGeneration = -1
             playbackState = playbackState.copy(isSpeaking = false, status = "Durdu", currentText = "", sleepTimerEndsAt = null)
             onRange(-1, -1)
             onComplete()
         } catch (e: Exception) {
+            if (!isActive(session)) return
             onStatus("TTS hatası: ${e.message ?: e::class.simpleName}")
-            isSpeaking = false
+            activeGeneration = -1
             playbackState = playbackState.copy(isSpeaking = false, status = "TTS hatası: ${e.message ?: e::class.simpleName}")
             onRange(-1, -1)
             onComplete()
         }
     }
 
-    fun stop() {
-        currentLine?.stop()
-        currentLine?.close()
+    override fun stop() {
+        activeGeneration = -1
+        currentLine?.let { line -> runCatching { line.stop(); line.flush(); line.close() } }
         currentLine = null
-        isSpeaking = false
         playbackState = playbackState.copy(isSpeaking = false, status = "Durdu", currentText = "", sleepTimerEndsAt = null)
     }
 
@@ -135,11 +173,11 @@ object TTSService {
         // PowerShell'de resume desteklenmiyor
     }
 
-    fun setVoice(voiceId: String) {
+    override fun setVoice(voiceId: String) {
         currentVoice = EMBEDDED_VOICES.firstOrNull { it.id == voiceId }?.id ?: DEFAULT_EMBEDDED_VOICE.id
     }
 
-    fun setSpeed(speed: Float) {
+    override fun setSpeed(speed: Float) {
         currentSpeed = speed.coerceIn(0.5f, 2.0f)
     }
 
@@ -157,7 +195,7 @@ object TTSService {
         }
     }
 
-    fun setDefaultSleepTimer(minutes: Int?) {
+    override fun setDefaultSleepTimer(minutes: Int?) {
         defaultSleepTimerMinutes = minutes
     }
 
@@ -210,7 +248,8 @@ object TTSService {
         samples: FloatArray,
         sampleRate: Int,
         segment: SpeechSegment,
-        onRange: (Int, Int) -> Unit
+        onRange: (Int, Int) -> Unit,
+        session: Int
     ) {
         val format = AudioFormat(sampleRate.toFloat(), 16, 1, true, false)
         val line = AudioSystem.getLine(DataLine.Info(SourceDataLine::class.java, format)) as SourceDataLine
@@ -220,9 +259,9 @@ object TTSService {
         val chunk = 4096
         val bytes = ByteArray(chunk * 2)
         var index = 0
-        while (isSpeaking && index < samples.size) {
+        while (isActive(session) && index < samples.size) {
             if (sleepTimerExpired()) {
-                isSpeaking = false
+                activeGeneration = -1
                 break
             }
             val count = minOf(chunk, samples.size - index)
@@ -234,14 +273,12 @@ object TTSService {
             line.write(bytes, 0, count * 2)
             index += count
         }
-        if (isSpeaking) {
-            onRange(segment.end, segment.end)
+        if (isActive(session)) {
             line.drain()
         } else {
             line.flush()
         }
-        line.stop()
-        line.close()
+        runCatching { line.stop(); line.close() }
         if (currentLine == line) currentLine = null
     }
 

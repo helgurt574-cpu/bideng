@@ -123,14 +123,16 @@ object DatabaseService {
     fun updateLibraryItem(item: LibraryItem) {
         val stmt = connection?.prepareStatement("""
             UPDATE library_items
-            SET last_index = ?, last_read_at = ?
+            SET name = ?, last_index = ?, last_read_at = ?, text_length = ?
             WHERE id = ?
         """.trimIndent())
 
         stmt?.apply {
-            setInt(1, item.lastIndex)
-            setLong(2, item.lastReadAt)
-            setString(3, item.id)
+            setString(1, item.name)
+            setInt(2, item.lastIndex)
+            setLong(3, item.lastReadAt)
+            setInt(4, item.textLength)
+            setString(5, item.id)
             executeUpdate()
             close()
         }

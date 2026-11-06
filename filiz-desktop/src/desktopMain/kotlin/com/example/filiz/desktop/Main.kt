@@ -1,52 +1,68 @@
 package com.example.filiz.desktop
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
-import com.example.filiz.desktop.ui.App
-import com.example.filiz.desktop.service.PreferenceService
 import com.example.filiz.desktop.service.DatabaseService
+import com.example.filiz.desktop.service.PreferenceService
 import com.example.filiz.desktop.service.TTSService
+import com.example.filiz.desktop.ui.App
+import com.example.filiz.desktop.ui.AppState
+import com.example.filiz.desktop.ui.chooseDocuments
+import com.example.filiz.desktop.ui.handleAppKey
+import java.awt.Dimension
 import java.io.File
 
 fun main() {
-    // App data directory oluştur
-    val appDir = File(System.getProperty("user.home"), ".bideng")
-    if (!appDir.exists()) appDir.mkdirs()
+    // Sesli okuma kütüphaneleri arayüzden (Skia) ÖNCE yüklenmeli; aksi hâlde yerel semboller karışıp çöküyor.
+    TTSService.preloadNativeLibraries()
 
-    // Servisleri başlat
-    val dbPath = File(appDir, "library.db").absolutePath
-    DatabaseService.initialize(dbPath)
+    val appDir = File(System.getProperty("user.home"), ".bideng").apply { mkdirs() }
+    DatabaseService.initialize(File(appDir, "library.db").absolutePath)
     PreferenceService.initialize(appDir)
     TTSService.initialize()
+    TTSService.setDefaultSleepTimer(PreferenceService.getSleepMinutes().takeIf { it > 0 })
 
     application {
         val windowState = rememberWindowState(
             width = PreferenceService.getWindowWidth().dp,
             height = PreferenceService.getWindowHeight().dp
         )
+        val scope = rememberCoroutineScope()
+        val state = remember { AppState(scope, appDir, TTSService) }
+        val import = { state.importFiles(chooseDocuments(state.strings.chooseFiles)) }
 
         LaunchedEffect(windowState) {
             snapshotFlow { windowState.size }.collect { size ->
-                PreferenceService.setWindowSize(size.width.value.toInt(), size.height.value.toInt())
+                if (windowState.placement == WindowPlacement.Floating) {
+                    PreferenceService.setWindowSize(size.width.value.toInt(), size.height.value.toInt())
+                }
             }
+        }
+        LaunchedEffect(state.fullScreen) {
+            windowState.placement = if (state.fullScreen) WindowPlacement.Fullscreen else WindowPlacement.Floating
         }
 
         Window(
-            onCloseRequest = ::exitApplication,
+            onCloseRequest = {
+                state.reader?.release()
+                TTSService.stop()
+                exitApplication()
+            },
             title = "Bideng",
             state = windowState,
             icon = painterResource("icons/ic_launcher.png"),
-            undecorated = false,
-            resizable = true
+            onPreviewKeyEvent = { handleAppKey(state, it, import) }
         ) {
-            App(window)
+            LaunchedEffect(Unit) { window.minimumSize = Dimension(760, 560) }
+            App(state, window, import)
         }
     }
 }
