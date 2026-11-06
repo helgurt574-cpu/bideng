@@ -42,6 +42,9 @@ object TTSService : SpeechEngine {
     // sherpa-onnx doğrudan JNI ile kullanılır: metin Unicode olarak gider (Windows'ta komut satırı
     // argümanları ANSI kod sayfasına çevrildiği için Türkçe/Arapça/Farsça harfler bozuluyordu).
     private var engine: OfflineTts? = null
+    // Yerel TTS motoru iş parçacığı güvenli değil: oluşturma, seslendirme ve serbest bırakma tek tek yapılmalı.
+    // Yoksa önceki okumanın generate() çağrısı sürerken yeni okuma motoru kullanır ya da siler ve uygulama çöker.
+    private val engineLock = Any()
     private var engineVoiceId: String? = null
     private var currentLine: SourceDataLine? = null
     private var defaultSleepTimerMinutes: Int? = 30
@@ -116,7 +119,6 @@ object TTSService : SpeechEngine {
             }
             onStatus("Dahili ses hazırlanıyor: ${voice.label}")
             playbackState = playbackState.copy(status = "Dahili ses hazırlanıyor: ${voice.label}")
-            val tts = engineFor(voice, appHome, model, tokens, espeak)
             val segments = text.cleanForSpeechPreservingOffsets().speechSegments(startIndex)
             for (segment in segments) {
                 if (!isActive(session)) break
@@ -126,7 +128,11 @@ object TTSService : SpeechEngine {
                 }
                 onRange(segment.start, segment.end)
                 if (!isActive(session)) break
-                val audio = tts.generate(segment.text.toTtsArgument(), 0, currentSpeed.coerceIn(0.5f, 2.0f))
+                val audio = synchronized(engineLock) {
+                    if (!isActive(session)) return@synchronized null
+                    engineFor(voice, appHome, model, tokens, espeak)
+                        .generate(segment.text.toTtsArgument(), 0, currentSpeed.coerceIn(0.5f, 2.0f))
+                } ?: break
                 if (!isActive(session)) break
                 if (audio.samples.isNotEmpty()) {
                     onStatus("Okunuyor.")
@@ -214,7 +220,7 @@ object TTSService : SpeechEngine {
         return File(System.getProperty("user.dir"))
     }
 
-    @Synchronized
+    /** Yalnızca [engineLock] tutulurken çağrılır. */
     private fun engineFor(voice: EmbeddedVoice, appHome: File, model: File, tokens: File, espeak: File): OfflineTts {
         engine?.takeIf { engineVoiceId == voice.id }?.let { return it }
         engine?.release()
@@ -234,6 +240,7 @@ object TTSService : SpeechEngine {
                             .build()
                     )
                     .setNumThreads(Runtime.getRuntime().availableProcessors().coerceIn(1, 4))
+                    .setDebug(false)
                     .build()
             )
             .setMaxNumSentences(1)

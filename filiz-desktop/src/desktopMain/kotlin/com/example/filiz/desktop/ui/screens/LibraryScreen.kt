@@ -131,7 +131,9 @@ fun LibraryScreen(state: AppState, onImport: () -> Unit) {
                 } else {
                     Column(Modifier.weight(1f)) {
                         Text(s.library, style = MaterialTheme.typography.headlineMedium, color = c.text)
-                        Text(s.libraryCount(state.items.size), color = c.muted, fontSize = 13.sp)
+                        // Sürüm görünsün: hangi paketin kurulu olduğu ekrandan anlaşılır
+                        val version = System.getProperty("jpackage.app-version")?.let { "  ·  v$it" }.orEmpty()
+                        Text(s.libraryCount(state.items.size) + version, color = c.muted, fontSize = 13.sp)
                     }
                     ToolbarIcon(Icons.Rounded.Search, s.search, { state.searchActive = true })
                     ToolbarIcon(themeIcon(state.themeMode), s.theme, state::cycleTheme)

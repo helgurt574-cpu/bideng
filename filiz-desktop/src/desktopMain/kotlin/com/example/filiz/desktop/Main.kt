@@ -19,12 +19,14 @@ import com.example.filiz.desktop.ui.chooseDocuments
 import com.example.filiz.desktop.ui.handleAppKey
 import java.awt.Dimension
 import java.io.File
+import kotlin.system.exitProcess
 
 fun main() {
     // Sesli okuma kütüphaneleri arayüzden (Skia) ÖNCE yüklenmeli; aksi hâlde yerel semboller karışıp çöküyor.
     TTSService.preloadNativeLibraries()
 
-    val appDir = File(System.getProperty("user.home"), ".bideng").apply { mkdirs() }
+    val appDir = (System.getenv("BIDENG_HOME")?.let(::File) ?: File(System.getProperty("user.home"), ".bideng")).apply { mkdirs() }
+    val selfTestDocument = System.getenv("BIDENG_SELFTEST")?.let(::File)
     DatabaseService.initialize(File(appDir, "library.db").absolutePath)
     PreferenceService.initialize(appDir)
     TTSService.initialize()
@@ -62,6 +64,13 @@ fun main() {
             onPreviewKeyEvent = { handleAppKey(state, it, import) }
         ) {
             LaunchedEffect(Unit) { window.minimumSize = Dimension(760, 560) }
+            if (selfTestDocument != null) {
+                LaunchedEffect(Unit) {
+                    val ok = runSelfTest(state, selfTestDocument)
+                    TTSService.stop()
+                    exitProcess(if (ok) 0 else 1)
+                }
+            }
             App(state, window, import)
         }
     }
