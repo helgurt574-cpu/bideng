@@ -1,0 +1,192 @@
+Bideng / Filiz APK Deneme Listesi
+=================================
+
+Amaç
+----
+Bu liste uygulamayı nihai karar öncesi gerçek kullanıcı gibi denemek için hazırlandı.
+Her maddeyi test ederken sonucu şu şekilde işaretle:
+
+[ ] Denenmedi
+[x] Sorunsuz
+[!] Sorun var
+
+Sorun varsa yanına kısa not yaz: hangi dosyada, hangi ekranda, ne oldu?
+
+
+1. Kurulum ve İlk Açılış
+------------------------
+[ ] APK telefona temiz kuruldu.
+[ ] Uygulama ilk açılışta çökmeden açıldı.
+[ ] Ana ekran / kitaplık ekranı düzgün görünüyor.
+[ ] Alt menü ve ana butonlar ekrana taşmadan görünüyor.
+[ ] Koyu tema açıkken renkler okunabilir.
+[ ] Açık tema açıkken renkler okunabilir.
+[ ] Uygulama kapatılıp açılınca son durum korunuyor.
+
+
+2. Belge İçe Aktarma
+--------------------
+[ ] PDF içe aktarılıyor.
+[ ] EPUB içe aktarılıyor.
+[ ] TXT içe aktarılıyor.
+[ ] DOCX içe aktarılıyor.
+[ ] DOC içe aktarılıyor.
+[ ] Aynı belge ikinci kez içe aktarılmaya çalışınca tekrar eklenmiyor.
+[ ] İçe aktarma sonrası belge otomatik açılıyor.
+[ ] Hatalı/bozuk belge denenince uygulama çökmüyor, anlamlı hata veriyor.
+[ ] Büyük dosya içe aktarırken uygulama tamamen donmuyor.
+
+
+3. Kitaplık
+-----------
+[ ] Kitaplıkta içe aktarılan belgeler listeleniyor.
+[ ] Kitap arama çalışıyor.
+[ ] Kitap açma çalışıyor.
+[ ] Kitap yeniden adlandırma çalışıyor.
+[ ] Kitap silme onay soruyor.
+[ ] Kitap silinince kitaplıktan kalkıyor.
+[ ] Birden fazla kitap varken liste karışmıyor.
+[ ] Dark modda kitap kartındaki ikonlar ve düzenleme kalemi net görünüyor.
+
+
+4. PDF Okuma
+------------
+[ ] PDF metni okunabilir şekilde açılıyor.
+[ ] PDF'de header/footer temizliği çalışıyor.
+[ ] PDF'de sayfa numarası kalabalığı görünmüyor veya çok az.
+[ ] PDF'de cümleler kesilmiyor.
+[ ] PDF'de paragraflar eksilmiyor.
+[ ] PDF'de arama çalışıyor.
+[ ] PDF'de font büyütme/küçültme çalışıyor.
+[ ] PDF'de font değiştirme çalışıyor.
+[ ] PDF'de kaydırma akıcı.
+
+
+5. EPUB Okuma
+-------------
+[ ] EPUB metni okunabilir şekilde açılıyor.
+[ ] EPUB'da header/footer/pagebreak temizliği çalışıyor.
+[ ] EPUB'da tek başına sayfa numaraları temizlenmiş.
+[ ] EPUB'da bölüm metinleri eksilmemiş.
+[ ] EPUB'da paragraflar çok bozulmamış.
+[ ] EPUB'da arama çalışıyor.
+[ ] EPUB'da font büyütme/küçültme çalışıyor.
+[ ] EPUB'da font değiştirme çalışıyor.
+[ ] EPUB'da kaydırma akıcı.
+
+
+6. Metin Seçme ve Not Alma
+--------------------------
+[ ] Bir kelime seçilip not alınabiliyor.
+[ ] Bir cümle seçilip not alınabiliyor.
+[ ] Uzun bir bölüm seçilip not alınabiliyor.
+[ ] Seçilen alan doğru not olarak kaydediliyor.
+[ ] Not rengi seçilebiliyor.
+[ ] Not rengi metinde doğru görünüyor.
+[ ] Not silerken onay soruyor.
+[ ] Tek not silme çalışıyor.
+[ ] Kitaptaki tüm notları silme çalışıyor.
+[ ] Genel notlarda tüm kitapların notları görünüyor.
+[ ] Kitap içi notlarda sadece açık kitabın notları görünüyor.
+[ ] Genel notlar kitap kitap gruplanıyor.
+
+
+7. Not Dışa Aktarma
+-------------------
+[ ] Açık kitaptaki notlar dışa aktarılıyor.
+[ ] Tüm kitaplardan alınan notlar dışa aktarılıyor.
+[ ] Export sonrası toast/bildirim çıkıyor.
+[ ] Bildirimde dosya adı görünüyor.
+[ ] Export edilen TXT dosyasında kitap adı yazıyor.
+[ ] Export edilen TXT dosyasında not metinleri eksiksiz.
+[ ] Export edilen TXT dosyasında farklı kitapların notları karışmıyor.
+
+
+8. TTS / Sesli Okuma
+--------------------
+[ ] Sesli okuma başlıyor.
+[ ] İlk başlatma süresi kabul edilebilir.
+[ ] Cümleden cümleye geçerken uzun duraklama yok.
+[ ] Okunan yer ekranda takip ediliyor.
+[ ] Kaydırma ile ses takibi birbirinden kopmuyor.
+[ ] Dur butonu hızlı durduruyor.
+[ ] Dur deyince uygulama çökmüyor.
+[ ] Durduktan sonra tekrar başlatılabiliyor.
+[ ] Hız değiştirince okuma hızına direkt etki ediyor.
+[ ] Uyku zamanlayıcısı varsayılan 30 dk görünüyor.
+[ ] Uyku zamanlayıcısı 15 dk seçilebiliyor.
+[ ] Uyku zamanlayıcısı 60 dk seçilebiliyor.
+[ ] Uyku zamanlayıcısı kapatılabiliyor.
+[ ] Arka plana alınca ses davranışı kontrol edildi.
+[ ] Kilit ekranı / bildirimden kontrol varsa çalışıyor.
+
+
+9. Otomatik Kaydırma
+--------------------
+[ ] Otomatik kaydırma açılıyor.
+[ ] Otomatik kaydırma kapatılıyor.
+[ ] Kaydırma yavaş ve okunabilir.
+[ ] Okuma sırasında ani zıplama olmuyor.
+[ ] Manuel kaydırma sonrası uygulama bozulmuyor.
+
+
+10. Arama
+---------
+[ ] Arama kutusu açılıyor.
+[ ] Kelime aranıyor.
+[ ] Enter ile sonraki sonuca gidiyor.
+[ ] Sonraki/önceki sonuç çalışıyor.
+[ ] Arama kapatılınca ekran normale dönüyor.
+[ ] Sonuç yoksa uygun mesaj veriyor.
+
+
+11. Dil ve Tema
+---------------
+[ ] Türkçe seçilince tüm temel metinler Türkçe.
+[ ] Kürtçe seçilince alt menü dahil metinler değişiyor.
+[ ] Arapça seçilince alt menü dahil metinler değişiyor.
+[ ] Arapça seçilince RTL yönü kabul edilebilir.
+[ ] Dark mode açılıyor.
+[ ] Light mode açılıyor.
+[ ] Tema değişince metin/ikon renkleri okunabilir kalıyor.
+
+
+12. Performans ve Kararlılık
+----------------------------
+[ ] 10 dakika okuma yapıldı, çökmedi.
+[ ] 10 dakika TTS yapıldı, çökmedi.
+[ ] TTS sırasında dur/başlat 10 kez denendi, çökmedi.
+[ ] Kitap değiştirirken çökmedi.
+[ ] Tema değiştirirken çökmedi.
+[ ] Dil değiştirirken çökmedi.
+[ ] Büyük PDF açarken bellek sorunu yaşanmadı.
+[ ] Büyük EPUB açarken bellek sorunu yaşanmadı.
+[ ] Uygulama arka plandan geri gelince kaldığı yer duruyor.
+
+
+13. Kabul Kriteri
+-----------------
+Nihai karar için minimum beklenti:
+
+[ ] PDF okuma temiz ve stabil.
+[ ] EPUB okuma temiz ve stabil.
+[ ] TTS başlama, durma ve takip kabul edilebilir.
+[ ] Not alma ve export güvenilir.
+[ ] Uygulama temel kullanımda çökmedi.
+[ ] Görünüm günlük kullanım için yeterince temiz.
+
+Genel karar:
+
+[ ] Yayına/dağıtıma hazır.
+[ ] Küçük düzeltmelerden sonra hazır.
+[ ] Büyük sorunlar var, tekrar geliştirme gerekiyor.
+
+
+Test Notları
+------------
+1.
+
+2.
+
+3.
+
