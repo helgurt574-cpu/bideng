@@ -29,8 +29,9 @@ public class TtsSmokeTest {
                         .setTokens(dir + "/tokens.txt")
                         .setDataDir(tts + "/espeak-ng-data")
                         .build())
-                    .setNumThreads(2)
+                    .setNumThreads(Integer.getInteger("threads", 2))
                     .build())
+                .setMaxNumSentences(Integer.getInteger("maxSentences", 1))
                 .build();
             OfflineTts engine = new OfflineTts(config);
             GeneratedAudio audio = engine.generate(sample[1], 0, 1.0f);

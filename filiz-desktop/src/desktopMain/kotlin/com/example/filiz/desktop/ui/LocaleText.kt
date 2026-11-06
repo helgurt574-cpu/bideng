@@ -1,108 +1,142 @@
 package com.example.filiz.desktop.ui
 
+import androidx.compose.runtime.staticCompositionLocalOf
+
 enum class UiLanguage(val id: String, val label: String) {
-    Turkish("tr", "Turkce"),
-    Kurdish("ku", "Kurdi"),
+    Turkish("tr", "Türkçe"),
+    Kurdish("ku", "Kurdî (Kurmancî)"),
     Arabic("ar", "العربية");
 
+    val isRtl: Boolean get() = this == Arabic
+
     companion object {
-        fun fromId(id: String): UiLanguage {
-            return entries.firstOrNull { it.id == id } ?: Turkish
-        }
+        fun fromId(id: String): UiLanguage = entries.firstOrNull { it.id == id } ?: Turkish
     }
 }
 
-fun tr(language: UiLanguage, turkish: String, kurdish: String, arabic: String): String {
-    return when (language) {
+val LocalStrings = staticCompositionLocalOf { Strings(UiLanguage.Turkish) }
+
+class Strings(val language: UiLanguage) {
+    fun t(turkish: String, kurdish: String, arabic: String): String = when (language) {
         UiLanguage.Turkish -> turkish
         UiLanguage.Kurdish -> kurdish
         UiLanguage.Arabic -> arabic
     }
-}
 
-class Strings(private val uiLanguage: UiLanguage) {
-    fun text(turkish: String, kurdish: String, arabic: String): String = tr(uiLanguage, turkish, kurdish, arabic)
-
-    val libraryTitle get() = text("Bideng - Belge Kütüphanesi", "Bideng - Pirtûkxaneya Belgeyan", "Bideng - مكتبة المستندات")
-    val libraryTab get() = text("Kitaplık", "Pirtûkxane", "المكتبة")
-    val readerTab get() = text("Okuma", "Xwendin", "القراءة")
-    val home get() = text("Ana", "Mal", "الرئيسية")
-    val focus get() = text("Odak", "Baldarî", "تركيز")
-    val importDocument get() = text("İçe Aktar", "Veguhêze", "استيراد")
-    val emptyLibrary get() = text("Belge Kütüphanesi Boş", "Pirtûkxane vala ye", "المكتبة فارغة")
-    val characters get() = text("karakter", "tîp", "حرف")
-
-    val readyToRead get() = text("Okuma hazır. Metne tıklayarak başla.", "Xwendin amade ye. Bi nivîsê dest pê bike.", "القراءة جاهزة. ابدأ بالنقر على النص.")
-    val readingStarts get() = text("Okuma başlıyor...", "Xwendin dest pê dike...", "تبدأ القراءة...")
-    val readingStopped get() = text("■ Okuma durdu", "■ Xwendin rawestiya", "■ توقفت القراءة")
-    val settingsOpen get() = text("Ayarlar açık", "Mîheng vekirî ne", "الإعدادات مفتوحة")
-    val autoScrollOn get() = text("Otomatik kaydırma: 1.0x", "Kişandina xweber: 1.0x", "التمرير التلقائي: 1.0x")
-    val autoScrollOff get() = text("Otomatik kaydırma kapalı", "Kişandina xweber girtî ye", "التمرير التلقائي متوقف")
-    val noAutoScrollWhileReading get() = text("Sesli okuma açıkken otomatik kaydırma başlamaz", "Dema xwendina bi deng vekirî be kişandina xweber dest pê nake", "لا يبدأ التمرير التلقائي أثناء القراءة الصوتية")
-    val noteReady get() = text("Not seçimi hazır: Notlar > Not Ekle", "Hilbijartina notê amade ye: Not > Not zêde bike", "تحديد الملاحظة جاهز: الملاحظات > أضف ملاحظة")
-    val noteAdded get() = text("Not eklendi", "Not hat zêdekirin", "تمت إضافة الملاحظة")
-    val selectedNoteAdded get() = text("Seçili metin notlara eklendi", "Nivîsa hilbijartî li notan hat zêdekirin", "تمت إضافة النص المحدد إلى الملاحظات")
-
-    val stop get() = text("Durdur", "Rawestîne", "إيقاف")
-    val close get() = text("Kapat", "Bigire", "إغلاق")
-    val delete get() = text("Sil", "Jê bibe", "حذف")
-    val summary get() = text("Özet", "Kurte", "ملخص")
-    val lastRead get() = text("Son okunan", "Ya dawî hatî xwendin", "آخر قراءة")
-    val ready get() = text("Hazır", "Amade", "جاهز")
-    val sleep get() = text("Uyku", "Xew", "النوم")
-    val minutes15 get() = text("15 dk", "15 xulek", "15 د")
-    val minutes30 get() = text("30 dk", "30 xulek", "30 د")
-    val minutes60 get() = text("1 saat", "1 saet", "ساعة")
-    val sleepTimer get() = text("Uyku zamanlayıcısı", "Demjimêra xewê", "مؤقت النوم")
-    val off get() = text("Kapalı", "Girtî", "متوقف")
-    val appTheme get() = text("Uygulama teması", "Dirba sepanê", "سمة التطبيق")
-    val darkTheme get() = text("Koyu tema", "Dirba tarî", "الوضع الداكن")
-    val lightTheme get() = text("Açık tema", "Dirba ronî", "الوضع الفاتح")
-    val appliesEverywhere get() = text("Uygulama genelinde geçerli.", "Li hemû sepanê derbasdar e.", "ينطبق على التطبيق كله.")
-    val deleteBookQuestion get() = text("Kitap silinsin mi?", "Pirtûk were jêbirin?", "هل تريد حذف الكتاب؟")
-    val searchLibrary get() = text("Kitap ara", "Li pirtûkan bigere", "ابحث في الكتب")
-    val continueReading get() = text("Kaldığın yerden devam et", "Ji cihê ku mayî bidomîne", "تابع من حيث توقفت")
-    val openLastBook get() = text("Son kitabı aç", "Pirtûka dawî veke", "افتح آخر كتاب")
-    val exportAllNotes get() = text("Tüm notları dışa aktar", "Hemû notan derxe", "تصدير كل الملاحظات")
-    val deleteAll get() = text("Tümünü sil", "Hemûyan jê bibe", "حذف الكل")
-    val openBook get() = text("Kitabı aç", "Pirtûkê veke", "افتح الكتاب")
-    val info get() = text("Bilgi", "Agahî", "معلومات")
-    val closePanel get() = text("Paneli kapat", "Panelê bigire", "إغلاق اللوحة")
-    val bookmark get() = text("Yer imi", "Nîşana cih", "إشارة مرجعية")
-    val autoScroll get() = text("Otomatik kaydır", "Kişandina xweber", "تمرير تلقائي")
-    val previous get() = text("Önceki", "Berê", "السابق")
-    val next get() = text("Sonraki", "Piştre", "التالي")
-    val exportNotesTxt get() = text("Notları TXT olarak dışa aktar", "Notan wek TXT derxe", "تصدير الملاحظات كـ TXT")
-    val clearNotes get() = text("Tüm notları sil", "Hemû notan jê bibe", "حذف كل الملاحظات")
-    val deleteNoteQuestion get() = text("Not silinsin mi?", "Not were jêbirin?", "هل تريد حذف الملاحظة؟")
-    val deleteAllNotesQuestion get() = text("Tüm notlar silinsin mi?", "Hemû not werin jêbirin?", "هل تريد حذف كل الملاحظات؟")
-    val emptyReaderHelp get() = text("Kitaplığından bir belge aç veya Ctrl+O ile yeni belge içe aktar.", "Ji pirtûkxaneyê belgeyekê veke an bi Ctrl+O belgeyekê veguhêze.", "افتح مستندًا من المكتبة أو استورد مستندًا جديدًا باستخدام Ctrl+O.")
-    val readAloud get() = text("Sesli Oku", "Bi deng bixwîne", "اقرأ بصوت")
-    val settings get() = text("Ayarlar", "Mîheng", "الإعدادات")
-    val voice get() = text("Ses", "Deng", "الصوت")
-    val embeddedVoicesMissing get() = text("Gömülü APK sesleri yüklenemedi.", "Dengên hundirîn nehatin barkirin.", "تعذر تحميل الأصوات المضمنة.")
-    val readingView get() = text("Aa Okuma görünümü", "Aa Dîtina xwendinê", "Aa مظهر القراءة")
-    val textSize get() = text("Metin boyutu", "Mezinahiya nivîsê", "حجم النص")
-    val lineSpacing get() = text("Satır aralığı", "Navbera rêzan", "تباعد الأسطر")
-    val languageTitle get() = text("Dil", "Ziman", "اللغة")
-    val speechSpeed get() = text("Konuşma hızı", "Lezîna axaftinê", "سرعة النطق")
-
-    val findWord get() = text("Kelime Bul", "Peyv bibîne", "البحث عن كلمة")
-    val searchHint get() = text("Aranacak kelimeyi yazın...", "Peyva lêgerînê binivîse...", "اكتب كلمة البحث...")
-    val find get() = text("Bul", "Bibîne", "بحث")
-    val cancel get() = text("İptal", "Betal", "إلغاء")
-    val found get() = text("bulundu", "hat dîtin", "تم العثور")
-    val notFound get() = text("bulunamadı", "nehat dîtin", "لم يتم العثور")
-
-    val notes get() = text("Notlar", "Not", "الملاحظات")
-    val selectedTextPrefix get() = text("Seçili metin", "Nivîsa hilbijartî", "النص المحدد")
-    val addNote get() = text("Not Ekle", "Not zêde bike", "أضف ملاحظة")
-    val noNotes get() = text("Henüz not yok. Okuma ekranında Not ile mevcut sayfadan not ekle.", "Hêj not tune ye. Di ekrana xwendinê de bi Notê not zêde bike.", "لا توجد ملاحظات بعد.")
-    val ok get() = text("Tamam", "Temam", "تم")
-    val selectedTextHint get() = text("Boş bırakılırsa seçili metin not alınır", "Ger vala bimîne nivîsa hilbijartî wek not tê tomarkirin", "إذا تُرك فارغًا سيتم حفظ النص المحدد كملاحظة")
-    val noteHint get() = text("Not yaz veya boş bırakıp mevcut sayfadan not al", "Not binivîse an vala bihêle û ji rûpela heyî not bigire", "اكتب ملاحظة أو اتركه فارغًا لحفظ الصفحة الحالية")
-
-    fun pageLabel(current: Int, total: Int, percent: Int): String {
-        return text("Konum $current / $total • %$percent", "Cih $current / $total • %$percent", "الموضع $current / $total • %$percent")
+    // Genel
+    val cancel get() = t("İptal", "Betal", "إلغاء")
+    val close get() = t("Kapat", "Bigire", "إغلاق")
+    val save get() = t("Kaydet", "Tomar bike", "حفظ")
+    val delete get() = t("Sil", "Jê bibe", "حذف")
+    val ok get() = t("Tamam", "Temam", "تم")
+    val back get() = t("Geri", "Paş", "رجوع")
+    val search get() = t("Ara", "Bigere", "بحث")
+    val theme get() = t("Tema", "Tema", "السمة")
+    val notes get() = t("Notlar", "Not", "الملاحظات")
+    val languageLabel get() = t("Dil", "Ziman", "اللغة")
+    val more get() = t("Seçenekler", "Vebijark", "خيارات")
+    fun themeName(id: String) = when (id) {
+        "light" -> t("Açık", "Ronî", "فاتح")
+        "sepia" -> t("Sepya", "Sepya", "سيبيا")
+        else -> t("Koyu", "Tarî", "داكن")
     }
+
+    // Kütüphane
+    val library get() = t("Kütüphane", "Pirtûkxane", "المكتبة")
+    fun libraryCount(n: Int) = if (n == 0) t("Henüz belge eklenmedi", "Hêj belge nehatiye zêdekirin", "لم تتم إضافة أي مستند بعد")
+        else t("$n belge · okumaların burada saklanır", "$n belge · xwendinên te li vir tên parastin", "$n مستند · قراءاتك محفوظة هنا")
+    val addDocument get() = t("Belge ekle", "Belge zêde bike", "إضافة مستند")
+    val continueReading get() = t("Kaldığın yerden devam et", "Ji cihê ku lê mayî berdewam bike", "تابع من حيث توقفت")
+    val pausedReading get() = t("Sesli okuma duraklatıldı", "Xwendina bi deng hate sekinandin", "القراءة الصوتية متوقفة مؤقتًا")
+    fun documentsLabel(n: Int) = t("Belgeler · $n", "Belge · $n", "المستندات · $n")
+    fun resultsLabel(n: Int) = t("Sonuçlar · $n", "Encam · $n", "النتائج · $n")
+    val noResults get() = t("Bu aramaya uyan belge yok", "Ji bo vê lêgerînê belge tune", "لا توجد مستندات مطابقة")
+    val searchLibraryHint get() = t("Belge adı ara", "Navê belgeyê bigere", "ابحث باسم المستند")
+    val emptyTitle get() = t("Kütüphanen boş", "Pirtûkxaneya te vala ye", "مكتبتك فارغة")
+    val emptyBody get() = t(
+        "PDF, EPUB, Word veya metin dosyası ekle ya da dosyaları bu pencereye sürükle; Bideng senin için sesli okusun.",
+        "PDF, EPUB, Word an pelê nivîsê zêde bike an jî pelan bikişîne vê paceyê.",
+        "أضف ملف PDF أو EPUB أو Word أو نص، أو اسحب الملفات إلى هذه النافذة."
+    )
+    fun readPercent(p: Int) = t("%$p okundu", "%$p hate xwendin", "%$p مقروء")
+    val notOpened get() = t("henüz açılmadı", "hêj nehatiye vekirin", "لم يُفتح بعد")
+    val rename get() = t("Yeniden adlandır", "Nav biguherîne", "إعادة تسمية")
+    val renameTitle get() = t("Belgeyi yeniden adlandır", "Navê belgeyê biguherîne", "إعادة تسمية المستند")
+    val documentName get() = t("Belge adı", "Navê belgeyê", "اسم المستند")
+    val deleteTitle get() = t("Belge silinsin mi?", "Bila belge were jêbirin?", "هل تريد حذف المستند؟")
+    fun deleteMessage(name: String) = t(
+        "\"$name\" kütüphaneden ve notlarıyla birlikte silinecek.",
+        "\"$name\" ji pirtûkxaneyê û bi notên xwe re dê were jêbirin.",
+        "سيتم حذف \"$name\" من المكتبة مع ملاحظاته."
+    )
+    fun importing(name: String) = t("İçe aktarılıyor: $name", "Tê barkirin: $name", "جارٍ الاستيراد: $name")
+    fun opening(name: String) = t("Açılıyor: $name", "Tê vekirin: $name", "جارٍ الفتح: $name")
+    fun imported(name: String) = t("Eklendi: $name", "Hat zêdekirin: $name", "تمت الإضافة: $name")
+    val unsupported get() = t("Desteklenen belge bulunamadı", "Belgeyeke piştgirîkirî nehat dîtin", "لم يتم العثور على مستند مدعوم")
+    val fileMissing get() = t("Belge dosyası bulunamadı", "Pela belgeyê nehat dîtin", "لم يتم العثور على ملف المستند")
+    val chooseFiles get() = t("Belge seç", "Belgeyê hilbijêre", "اختر مستندًا")
+
+    // Okuyucu
+    val readyHint get() = t("Okumak için ▶'ye ya da bir kelimeye tıkla", "Ji bo xwendinê li ▶ an peyvekê bixe", "اضغط ▶ أو انقر على كلمة لبدء القراءة")
+    val preparing get() = t("Ses hazırlanıyor…", "Deng tê amadekirin…", "جارٍ تجهيز الصوت…")
+    val reading get() = t("Okunuyor", "Tê xwendin", "تجري القراءة")
+    val paused get() = t("Duraklatıldı · devam etmek için ▶", "Sekinî · ji bo berdewamiyê ▶", "متوقف مؤقتًا · اضغط ▶ للمتابعة")
+    val stopped get() = t("Sesli okuma durduruldu", "Xwendina bi deng rawestiya", "تم إيقاف القراءة الصوتية")
+    val finished get() = t("Okuma tamamlandı", "Xwendin temam bû", "اكتملت القراءة")
+    val readFromHere get() = t("Buradan okumak için ▶", "Ji bo ji vir bixwînî ▶", "اضغط ▶ للقراءة من هنا")
+    val play get() = t("Oynat", "Lê bide", "تشغيل")
+    val pause get() = t("Duraklat", "Bisekinîne", "إيقاف مؤقت")
+    val resume get() = t("Devam et", "Berdewam bike", "متابعة")
+    val stop get() = t("Durdur", "Rawestîne", "إيقاف")
+    val previousSentence get() = t("Önceki cümle", "Hevoka berê", "الجملة السابقة")
+    val nextSentence get() = t("Sonraki cümle", "Hevoka din", "الجملة التالية")
+    val autoScroll get() = t("Otomatik kaydır", "Kişandina xweber", "التمرير التلقائي")
+    val autoScrollOn get() = t("Otomatik kaydırma açık · durdurmak için tekrar bas", "Kişandina xweber vekirî ye", "التمرير التلقائي مفعّل")
+    val readingSettings get() = t("Okuma ayarları", "Mîhengên xwendinê", "إعدادات القراءة")
+    val searchInText get() = t("Metinde ara", "Di nivîsê de bigere", "ابحث في النص")
+    val previousResult get() = t("Önceki sonuç", "Encama berê", "النتيجة السابقة")
+    val nextResult get() = t("Sonraki sonuç", "Encama din", "النتيجة التالية")
+    fun searchFound(i: Int, n: Int) = t("$i / $n sonuç", "$i / $n encam", "$i / $n نتيجة")
+    val searchNone get() = t("Sonuç yok", "Encam tune", "لا نتائج")
+    fun pageLabel(unit: String, current: Int, total: Int) = when (unit) {
+        "chapter" -> t("Bölüm $current / $total", "Beş $current / $total", "الفصل $current / $total")
+        "location" -> t("Konum $current / $total", "Cih $current / $total", "الموضع $current / $total")
+        else -> t("Sayfa $current / $total", "Rûpel $current / $total", "الصفحة $current / $total")
+    }
+    val voice get() = t("Ses", "Deng", "الصوت")
+    val speechSpeed get() = t("Konuşma hızı", "Lezîna axaftinê", "سرعة النطق")
+    val appearance get() = t("Görünüm", "Xuyang", "المظهر")
+    val sleep get() = t("Uyku", "Xew", "النوم")
+    val focusMode get() = t("Odak", "Baldarî", "تركيز")
+    val sleepTitle get() = t("Uyku zamanlayıcısı", "Demjimêra xewê", "مؤقت النوم")
+    val sleepOff get() = t("Kapalı", "Girtî", "إيقاف")
+    fun minutes(m: Int) = t("$m dk", "$m deq", "$m د")
+    val voiceTitle get() = t("Ses seçimi", "Hilbijartina dengê", "اختيار الصوت")
+    val builtIn get() = t("uygulamayla gelir", "bi sepanê re tê", "مضمّن في التطبيق")
+    fun voiceLanguage(code: String) = when (code) {
+        "ar" -> t("Arapça", "Erebî", "العربية")
+        "fa" -> t("Farsça", "Farisî", "الفارسية")
+        else -> t("Türkçe", "Tirkî", "التركية")
+    }
+    val languageTitle get() = t("Arayüz dili", "Zimanê navrûyê", "لغة الواجهة")
+    val fontSize get() = t("Yazı boyutu", "Mezinahiya nivîsê", "حجم الخط")
+    val lineSpacing get() = t("Satır aralığı", "Navbera rêzan", "تباعد الأسطر")
+    val fontFamily get() = t("Yazı tipi", "Curenivîs", "نوع الخط")
+    val selectionHint get() = t("Seçili metni not olarak ekle", "Nivîsa hilbijartî wek not zêde bike", "أضف النص المحدد كملاحظة")
+    val addNote get() = t("Not ekle", "Not zêde bike", "أضف ملاحظة")
+    val noteAdded get() = t("Not eklendi", "Not hat zêdekirin", "تمت إضافة الملاحظة")
+
+    // Notlar
+    val notesEmpty get() = t(
+        "Henüz not yok. Okurken bir bölümü fareyle seçip \"Not ekle\"ye basarak not alabilirsin.",
+        "Hêj not tune ye. Di dema xwendinê de beşekê hilbijêre û \"Not zêde bike\" bitikîne.",
+        "لا توجد ملاحظات بعد. حدّد نصًا أثناء القراءة ثم اضغط \"أضف ملاحظة\"."
+    )
+    val exportNotes get() = t("Dışa aktar", "Derxe derve", "تصدير")
+    val deleteAll get() = t("Tümünü sil", "Hemûyan jê bibe", "حذف الكل")
+    val deleteNoteTitle get() = t("Not silinsin mi?", "Bila not were jêbirin?", "هل تريد حذف الملاحظة؟")
+    val clearNotesTitle get() = t("Tüm notlar silinsin mi?", "Bila hemû not werin jêbirin?", "هل تريد حذف كل الملاحظات؟")
+    fun clearNotesMessage(n: Int) = t("$n not silinecek.", "$n not dê werin jêbirin.", "سيتم حذف $n ملاحظة.")
+    fun exported(path: String) = t("Notlar kaydedildi: $path", "Not hatin tomarkirin: $path", "تم حفظ الملاحظات: $path")
+    val untitled get() = t("Adsız belge", "Belgeya bênav", "مستند بلا اسم")
 }

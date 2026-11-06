@@ -17,6 +17,13 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(compose.desktop.uiTestJUnit4)
+                implementation(compose.desktop.currentOs)
+            }
+        }
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
@@ -83,6 +90,7 @@ compose.desktop {
                 "java.prefs",
                 "java.sql",
                 "java.xml",
+                "jdk.charsets",
                 "jdk.crypto.ec",
                 "jdk.unsupported"
             )
@@ -128,3 +136,4 @@ compose.desktop {
 tasks.matching { it.name == "packageMsi" || it.name == "packageExe" }.configureEach {
     dependsOn("createRuntimeImage")
 }
+
