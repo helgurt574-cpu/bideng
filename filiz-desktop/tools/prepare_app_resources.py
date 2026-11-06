@@ -24,7 +24,8 @@ ANDROID_TTS = REPO / "app" / "src" / "main" / "assets" / "tts"
 OUT = DESKTOP / "build" / "app-resources"
 CACHE = DESKTOP / "build" / "download-cache"
 
-SHERPA_VERSION = "2.0.1"
+# 2.x sürümleri espeak-ng desteğini kaldırdı (--vits-data-dir yok sayılıyor); piper sesleri için 1.x gerekli
+SHERPA_VERSION = "1.13.8"
 SHERPA_ARCHIVES = {
     "windows": f"sherpa-onnx-v{SHERPA_VERSION}-win-x64-shared-MD-Release.tar.bz2",
     "macos": f"sherpa-onnx-v{SHERPA_VERSION}-osx-arm64-shared.tar.bz2",
@@ -149,6 +150,9 @@ def smoke_test(exe: Path, target_os: str) -> None:
 
 
 def main() -> None:
+    # Windows konsolu (cp1252) Türkçe karakterleri yazamıyor
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     if len(sys.argv) < 2 or sys.argv[1] not in SHERPA_ARCHIVES:
         raise SystemExit(__doc__)
     target_os = sys.argv[1]
