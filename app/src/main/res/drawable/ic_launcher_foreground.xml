@@ -1,0 +1,46 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="58"
+        android:scaleX="0.94"
+        android:scaleY="0.94">
+        <!-- Kitap kapağı -->
+        <path
+            android:fillColor="#FFF59E0B"
+            android:pathData="M29,56 L29,80 C39,79 47,80 54,84 C61,80 69,79 79,80 L79,56 Z" />
+        <!-- Sol sayfa -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M53,58 C47,53 40,52 32,53 L32,77 C40,76 47,77 53,81 Z" />
+        <!-- Sağ sayfa -->
+        <path
+            android:fillColor="#FFF5F0FF"
+            android:pathData="M55,58 C61,53 68,52 76,53 L76,77 C68,76 61,77 55,81 Z" />
+        <!-- Satırlar -->
+        <path
+            android:strokeColor="#FFC4B5FD"
+            android:strokeWidth="1.6"
+            android:strokeLineCap="round"
+            android:pathData="M36,60.5 C40,60 45,60.5 49,62.5 M36,65.5 C40,65 45,65.5 49,67.5 M36,70.5 C40,70 44,70.5 47,72 M59,62.5 C63,60.5 68,60 72,60.5 M59,67.5 C63,65.5 68,65 72,65.5 M61,72 C64,70.5 68,70 72,70.5" />
+        <!-- Ses dalgaları -->
+        <path
+            android:strokeColor="#FFFDE68A"
+            android:strokeWidth="3.4"
+            android:strokeLineCap="round"
+            android:pathData="M49.05,47.05 A7,7 0,0 1,58.95 47.05" />
+        <path
+            android:strokeColor="#FFFCD34D"
+            android:strokeWidth="3.4"
+            android:strokeLineCap="round"
+            android:pathData="M44.81,42.81 A13,13 0,0 1,63.19 42.81" />
+        <path
+            android:strokeColor="#FFFBBF24"
+            android:strokeWidth="3.4"
+            android:strokeLineCap="round"
+            android:pathData="M40.56,38.56 A19,19 0,0 1,67.44 38.56" />
+    </group>
+</vector>
