@@ -5,7 +5,12 @@ import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.k2fsa.sherpa.onnx.OfflineTts
+import com.k2fsa.sherpa.onnx.OfflineTtsConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import java.io.File
+import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.SourceDataLine
@@ -14,7 +19,10 @@ object TTSService {
     private var currentVoice: String = DEFAULT_EMBEDDED_VOICE.id
     private var currentSpeed: Float = 1.0f
     private var isSpeaking: Boolean = false
-    private var currentProcess: Process? = null
+    // sherpa-onnx doğrudan JNI ile kullanılır: metin Unicode olarak gider (Windows'ta komut satırı
+    // argümanları ANSI kod sayfasına çevrildiği için Türkçe/Arapça/Farsça harfler bozuluyordu).
+    private var engine: OfflineTts? = null
+    private var engineVoiceId: String? = null
     private var currentLine: SourceDataLine? = null
     private var defaultSleepTimerMinutes: Int? = 30
     var playbackState by mutableStateOf(TtsPlaybackState())
@@ -59,14 +67,13 @@ object TTSService {
             )
             val voice = EMBEDDED_VOICES.firstOrNull { it.id == currentVoice } ?: DEFAULT_EMBEDDED_VOICE
             val appHome = appHome()
-            val exe = sherpaExecutable(appHome)
             val modelRoot = File(appHome, voice.modelDir)
             val model = File(modelRoot, voice.modelName)
             val tokens = File(modelRoot, "tokens.txt")
             // Tüm sesler ortak (budanmış) espeak-ng verisini kullanır; eski paket düzeni için ses klasörüne de bakılır
             val espeak = File(appHome, "tts/espeak-ng-data").takeIf { File(it, "phontab").exists() }
                 ?: File(modelRoot, "espeak-ng-data")
-            val preflightError = preflightError(exe, model, tokens, espeak)
+            val preflightError = preflightError(model, tokens, espeak)
             if (preflightError != null) {
                 onStatus(preflightError)
                 playbackState = playbackState.copy(isSpeaking = false, status = preflightError)
@@ -74,6 +81,7 @@ object TTSService {
             }
             onStatus("Dahili ses hazırlanıyor: ${voice.label}")
             playbackState = playbackState.copy(status = "Dahili ses hazırlanıyor: ${voice.label}")
+            val tts = engineFor(voice, appHome, model, tokens, espeak)
             val segments = text.cleanForSpeechPreservingOffsets().speechSegments(startIndex)
             for (segment in segments) {
                 if (!isSpeaking) break
@@ -82,27 +90,9 @@ object TTSService {
                     break
                 }
                 onRange(segment.start, segment.end)
-                val output = File.createTempFile("bideng-tts-", ".wav")
-                val ttsText = segment.text.toTtsArgument()
-                val args = listOf(
-                    exe.absolutePath,
-                    "--vits-model=${model.absolutePath}",
-                    "--vits-tokens=${tokens.absolutePath}",
-                    "--vits-data-dir=${espeak.absolutePath}",
-                    "--vits-length-scale=${lengthScaleForSpeed(currentSpeed)}",
-                    "--output-filename=${output.absolutePath}",
-                    ttsText
-                )
-                val process = ProcessBuilder(args).apply {
-                    directory(exe.parentFile)
-                    redirectErrorStream(true)
-                    configureNativeLibraryPath(environment(), File(exe.parentFile.parentFile, "lib"))
-                }.start()
-                currentProcess = process
-                val processOutput = process.inputStream.bufferedReader().readText()
-                val exitCode = process.waitFor()
-                currentProcess = null
-                if (output.exists() && output.length() > 44) {
+                val audio = tts.generate(segment.text.toTtsArgument(), 0, currentSpeed.coerceIn(0.5f, 2.0f))
+                if (!isSpeaking) break
+                if (audio.samples.isNotEmpty()) {
                     onStatus("Okunuyor.")
                     playbackState = playbackState.copy(
                         isSpeaking = true,
@@ -111,14 +101,10 @@ object TTSService {
                         currentRangeStart = segment.start,
                         currentRangeEnd = segment.end
                     )
-                    playWav(output, segment, onRange)
+                    playSamples(audio.samples, audio.sampleRate, segment, onRange)
                 } else {
-                    onStatus("TTS başlatılamadı: ${shortError(processOutput, exitCode)}")
-                    playbackState = playbackState.copy(status = "TTS başlatılamadı")
-                    runCatching { output.delete() }
-                    continue
+                    onStatus("TTS bu bölümü seslendiremedi.")
                 }
-                runCatching { output.delete() }
             }
             isSpeaking = false
             playbackState = playbackState.copy(isSpeaking = false, status = "Durdu", currentText = "", sleepTimerEndsAt = null)
@@ -127,7 +113,6 @@ object TTSService {
         } catch (e: Exception) {
             onStatus("TTS hatası: ${e.message ?: e::class.simpleName}")
             isSpeaking = false
-            currentProcess = null
             playbackState = playbackState.copy(isSpeaking = false, status = "TTS hatası: ${e.message ?: e::class.simpleName}")
             onRange(-1, -1)
             onComplete()
@@ -138,8 +123,6 @@ object TTSService {
         currentLine?.stop()
         currentLine?.close()
         currentLine = null
-        currentProcess?.destroyForcibly()
-        currentProcess = null
         isSpeaking = false
         playbackState = playbackState.copy(isSpeaking = false, status = "Durdu", currentText = "", sleepTimerEndsAt = null)
     }
@@ -193,75 +176,73 @@ object TTSService {
         return File(System.getProperty("user.dir"))
     }
 
-    private val isWindows: Boolean = System.getProperty("os.name").orEmpty().startsWith("Windows", ignoreCase = true)
-    private val isMac: Boolean = System.getProperty("os.name").orEmpty().startsWith("Mac", ignoreCase = true)
-
-    private fun sherpaExecutable(appHome: File): File {
-        val exe = File(appHome, if (isWindows) "sherpa/bin/sherpa-onnx-offline-tts.exe" else "sherpa/bin/sherpa-onnx-offline-tts")
-        if (isWindows || !exe.exists() || exe.canExecute()) return exe
-        // Kurulum paketleri (deb/dmg) çalıştırma iznini koruyamıyor ve kurulum klasörü salt okunur:
-        // motoru bir kez kullanıcı klasörüne kopyalayıp orada çalıştırılabilir yap.
-        if (runCatching { exe.setExecutable(true) }.getOrDefault(false) && exe.canExecute()) return exe
-        val sherpaHome = exe.parentFile.parentFile
-        val runtime = File(System.getProperty("user.home"), ".bideng/sherpa-runtime")
-        val copied = File(runtime, "bin/${exe.name}")
-        val upToDate = copied.exists() && copied.length() == exe.length() &&
-            sherpaHome.walkTopDown().filter { it.isFile }.all { source ->
-                File(runtime, source.relativeTo(sherpaHome).path).let { it.exists() && it.length() == source.length() }
-            }
-        if (!upToDate) {
-            runtime.deleteRecursively()
-            sherpaHome.copyRecursively(runtime, overwrite = true)
+    @Synchronized
+    private fun engineFor(voice: EmbeddedVoice, appHome: File, model: File, tokens: File, espeak: File): OfflineTts {
+        engine?.takeIf { engineVoiceId == voice.id }?.let { return it }
+        engine?.release()
+        engine = null
+        // Paketteki yerel kütüphaneler (onnxruntime + sherpa-onnx-jni) bu klasörden yüklenir
+        File(appHome, "sherpa-native").takeIf { it.isDirectory }?.let {
+            System.setProperty("sherpa_onnx.native.path", it.absolutePath)
         }
-        copied.setExecutable(true)
-        return copied
+        val config = OfflineTtsConfig.builder()
+            .setModel(
+                OfflineTtsModelConfig.builder()
+                    .setVits(
+                        OfflineTtsVitsModelConfig.builder()
+                            .setModel(model.absolutePath)
+                            .setTokens(tokens.absolutePath)
+                            .setDataDir(espeak.absolutePath)
+                            .build()
+                    )
+                    .setNumThreads(Runtime.getRuntime().availableProcessors().coerceIn(1, 4))
+                    .build()
+            )
+            .setMaxNumSentences(1)
+            .build()
+        return OfflineTts(config).also {
+            engine = it
+            engineVoiceId = voice.id
+        }
     }
 
-    private fun configureNativeLibraryPath(environment: MutableMap<String, String>, libDir: File) {
-        if (isWindows || !libDir.isDirectory) return
-        val key = if (isMac) "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"
-        val existing = environment[key].orEmpty()
-        environment[key] = if (existing.isBlank()) libDir.absolutePath else "${libDir.absolutePath}${File.pathSeparator}$existing"
-    }
-
-    private fun lengthScaleForSpeed(speed: Float): String {
-        return "%.3f".format(java.util.Locale.US, (1.0f / speed.coerceIn(0.7f, 1.35f)))
-    }
-
-    private fun playWav(
-        file: File,
+    private fun playSamples(
+        samples: FloatArray,
+        sampleRate: Int,
         segment: SpeechSegment,
         onRange: (Int, Int) -> Unit
     ) {
-        AudioSystem.getAudioInputStream(file).use { stream ->
-            val format = stream.format
-            val info = DataLine.Info(SourceDataLine::class.java, format)
-            val line = AudioSystem.getLine(info) as SourceDataLine
-            currentLine = line
-            line.open(format)
-            line.start()
-            val buffer = ByteArray(8192)
-            while (isSpeaking) {
-                if (sleepTimerExpired()) {
-                    isSpeaking = false
-                    break
-                }
-                val read = stream.read(buffer, 0, buffer.size)
-                if (read <= 0) break
-                line.write(buffer, 0, read)
+        val format = AudioFormat(sampleRate.toFloat(), 16, 1, true, false)
+        val line = AudioSystem.getLine(DataLine.Info(SourceDataLine::class.java, format)) as SourceDataLine
+        currentLine = line
+        line.open(format)
+        line.start()
+        val chunk = 4096
+        val bytes = ByteArray(chunk * 2)
+        var index = 0
+        while (isSpeaking && index < samples.size) {
+            if (sleepTimerExpired()) {
+                isSpeaking = false
+                break
             }
-            if (isSpeaking) {
-                onRange(segment.end, segment.end)
+            val count = minOf(chunk, samples.size - index)
+            for (i in 0 until count) {
+                val value = (samples[index + i].coerceIn(-1f, 1f) * 32767f).toInt()
+                bytes[i * 2] = (value and 0xFF).toByte()
+                bytes[i * 2 + 1] = ((value shr 8) and 0xFF).toByte()
             }
-            if (isSpeaking) {
-                line.drain()
-            } else {
-                line.flush()
-            }
-            line.stop()
-            line.close()
-            if (currentLine == line) currentLine = null
+            line.write(bytes, 0, count * 2)
+            index += count
         }
+        if (isSpeaking) {
+            onRange(segment.end, segment.end)
+            line.drain()
+        } else {
+            line.flush()
+        }
+        line.stop()
+        line.close()
+        if (currentLine == line) currentLine = null
     }
 
     private fun sleepTimerExpired(): Boolean {
@@ -359,8 +340,7 @@ object TTSService {
         }
     }
 
-    private fun preflightError(exe: File, model: File, tokens: File, espeak: File): String? {
-        if (!exe.exists()) return "TTS motoru bulunamadı: ${exe.path}"
+    private fun preflightError(model: File, tokens: File, espeak: File): String? {
         if (!model.exists()) return "TTS modeli bulunamadı: ${model.path}"
         if (!tokens.exists()) return "TTS tokens dosyası bulunamadı: ${tokens.path}"
         if (!File(espeak, "phontab").exists()) return "TTS dil verisi eksik: ${espeak.path}"

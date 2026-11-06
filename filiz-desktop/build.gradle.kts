@@ -23,6 +23,9 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
+
+                // Sesli okuma: sherpa-onnx Java API (yerel kütüphaneler pakete gömülür, bkz. tools/prepare_app_resources.py)
+                implementation(files("libs/sherpa-onnx-jvm-1.13.8.jar"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
                 // PDF

@@ -69,14 +69,11 @@ jobs:
       - name: Gömülü sesleri ve sherpa-onnx'i hazırla
         run: python filiz-desktop/tools/prepare_app_resources.py ${{ matrix.target }}
 
-      - name: macOS — sherpa ikililerini ad-hoc imzala
+      - name: macOS — yerel kütüphaneleri ad-hoc imzala
         if: matrix.target == 'macos'
-        run: |
-          R=filiz-desktop/build/app-resources/macos/sherpa
-          codesign --force --sign - "$R"/lib/*.dylib
-          codesign --force --sign - "$R/bin/sherpa-onnx-offline-tts"
+        run: codesign --force --sign - filiz-desktop/build/app-resources/macos/sherpa-native/*.dylib
 
-      - name: Ses denemesi (Türkçe, Arapça, Farsça)
+      - name: Ses denemesi (5 ses; Türkçe, Arapça, Farsça)
         run: python filiz-desktop/tools/prepare_app_resources.py ${{ matrix.target }} --smoke-only
 
       - name: Paketle

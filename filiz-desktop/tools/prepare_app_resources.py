@@ -2,7 +2,7 @@
 """Masaüstü kurulum paketine gömülecek dosyaları hazırlar (tamamen çevrimdışı çalışma için).
 
 build/app-resources/common/tts/      -> ortak espeak-ng verisi + 5 ses (model.onnx + tokens.txt)
-build/app-resources/<os>/sherpa/     -> o işletim sistemine ait sherpa-onnx-offline-tts ve kütüphaneleri
+build/app-resources/<os>/sherpa-native/ -> o işletim sistemine ait sherpa-onnx JNI + onnxruntime kütüphaneleri
 
 Kullanım: python3 tools/prepare_app_resources.py <windows|macos|linux> [--smoke-test | --smoke-only]
 Yalnızca derleme sırasında internet gerekir; kurulan uygulama hiçbir şey indirmez.
@@ -10,12 +10,10 @@ Yalnızca derleme sırasında internet gerekir; kurulan uygulama hiçbir şey in
 import hashlib
 import os
 import shutil
-import stat
 import subprocess
 import sys
-import tarfile
-import tempfile
 import urllib.request
+import zipfile
 from pathlib import Path
 
 DESKTOP = Path(__file__).resolve().parent.parent
@@ -26,11 +24,13 @@ CACHE = DESKTOP / "build" / "download-cache"
 
 # 2.x sürümleri espeak-ng desteğini kaldırdı (--vits-data-dir yok sayılıyor); piper sesleri için 1.x gerekli
 SHERPA_VERSION = "1.13.8"
-SHERPA_ARCHIVES = {
-    "windows": f"sherpa-onnx-v{SHERPA_VERSION}-win-x64-shared-MD-Release.tar.bz2",
-    "macos": f"sherpa-onnx-v{SHERPA_VERSION}-osx-arm64-shared.tar.bz2",
-    "linux": f"sherpa-onnx-v{SHERPA_VERSION}-linux-x64-shared.tar.bz2",
+# Uygulama sherpa-onnx'i Java API'siyle (JNI) kullanır; her sistem için yerel kütüphane paketi
+SHERPA_NATIVE_JARS = {
+    "windows": f"sherpa-onnx-native-lib-win-x64-{SHERPA_VERSION}.jar",
+    "macos": f"sherpa-onnx-native-lib-osx-aarch64-{SHERPA_VERSION}.jar",
+    "linux": f"sherpa-onnx-native-lib-linux-x64-{SHERPA_VERSION}.jar",
 }
+SHERPA_JVM_JAR = DESKTOP / "libs" / f"sherpa-onnx-jvm-{SHERPA_VERSION}.jar"
 
 HF = "https://huggingface.co/csukuangfj"
 # APK ile aynı sesler; modeller Android'in tokens.txt dosyalarıyla eşleşir.
@@ -89,85 +89,60 @@ def prepare_voices() -> None:
         shutil.copy2(ANDROID_TTS / directory / "tokens.txt", voice_dir / "tokens.txt")
 
 
-def prepare_sherpa(target_os: str) -> Path:
-    archive_name = SHERPA_ARCHIVES[target_os]
-    url = f"https://github.com/k2-fsa/sherpa-onnx/releases/download/v{SHERPA_VERSION}/{archive_name}"
-    archive = download(url, CACHE / archive_name)
-    destination = OUT / target_os / "sherpa"
-    if destination.exists():
-        shutil.rmtree(destination)
-    (destination / "bin").mkdir(parents=True)
-    (destination / "lib").mkdir(parents=True)
-    with tempfile.TemporaryDirectory() as temp:
-        with tarfile.open(archive, "r:bz2") as tar:
-            tar.extractall(temp, filter="data")
-        root = next(Path(temp).iterdir())
-        exe_name = "sherpa-onnx-offline-tts.exe" if target_os == "windows" else "sherpa-onnx-offline-tts"
-        shutil.copy2(root / "bin" / exe_name, destination / "bin" / exe_name)
-        for folder in ("lib", "bin"):
-            source = root / folder
-            if not source.is_dir():
-                continue
-            for item in source.iterdir():
-                if item.suffix.lower() == ".dll":
-                    # Windows'ta DLL'ler exe'nin yanında olmalı
-                    shutil.copy2(item, destination / "bin" / item.name)
-                elif folder == "lib" and (".so" in item.name or item.suffix == ".dylib"):
-                    shutil.copy2(item, destination / "lib" / item.name, follow_symlinks=True)
-        exe = destination / "bin" / exe_name
-        exe.chmod(exe.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    return destination / "bin" / exe_name
+def prepare_native(target_os: str) -> Path:
+    jar_name = SHERPA_NATIVE_JARS[target_os]
+    url = f"https://github.com/k2-fsa/sherpa-onnx/releases/download/v{SHERPA_VERSION}/{jar_name}"
+    jar = download(url, CACHE / jar_name)
+    destination = OUT / target_os / "sherpa-native"
+    if (OUT / target_os).exists():
+        shutil.rmtree(OUT / target_os)
+    destination.mkdir(parents=True)
+    with zipfile.ZipFile(jar) as archive:
+        for entry in archive.namelist():
+            if entry.startswith("sherpa-onnx/native/") and not entry.endswith("/"):
+                (destination / Path(entry).name).write_bytes(archive.read(entry))
+    names = sorted(p.name for p in destination.iterdir())
+    if not any("sherpa-onnx-jni" in n for n in names) or not any("onnxruntime" in n for n in names):
+        raise SystemExit(f"Yerel kütüphaneler eksik: {names}")
+    return destination
 
 
-def smoke_test(exe: Path, target_os: str) -> None:
-    tts = OUT / "common" / "tts"
-    env = dict(os.environ)
-    lib = exe.parent.parent / "lib"
-    if target_os == "linux":
-        env["LD_LIBRARY_PATH"] = str(lib)
-    elif target_os == "macos":
-        env["DYLD_LIBRARY_PATH"] = str(lib)
-    samples = {
-        "tr_TR_fahrettin_medium": "Merhaba, bu bir deneme cümlesidir.",
-        "vits-piper-ar_JO-kareem-low": "مرحبا، هذه جملة تجريبية.",
-        "vits-piper-fa_IR-amir-medium": "سلام، این یک جمله آزمایشی است.",
-    }
-    for voice, text in samples.items():
-        wav = OUT / f"smoke-{voice}.wav"
-        result = subprocess.run([
-            str(exe),
-            f"--vits-model={tts / voice / 'model.onnx'}",
-            f"--vits-tokens={tts / voice / 'tokens.txt'}",
-            f"--vits-data-dir={tts / 'espeak-ng-data'}",
-            f"--output-filename={wav}",
-            text,
-        ], cwd=exe.parent, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
-        if result.returncode != 0 or not wav.exists() or wav.stat().st_size < 10_000:
-            print(result.stdout[-2000:], result.stderr[-2000:])
-            raise SystemExit(f"Ses denemesi başarısız: {voice}")
-        print(f"ses denemesi tamam: {voice} ({wav.stat().st_size} bayt)")
-        wav.unlink()
+def smoke_test(native_dir: Path) -> None:
+    java_home = os.environ.get("JAVA_HOME")
+    java = str(Path(java_home) / "bin" / "java") if java_home else "java"
+    result = subprocess.run([
+        java,
+        "-cp", str(SHERPA_JVM_JAR),
+        f"-Dsherpa_onnx.native.path={native_dir}",
+        "-Dfile.encoding=UTF-8",
+        "-Dstdout.encoding=UTF-8",
+        str(DESKTOP / "tools" / "TtsSmokeTest.java"),
+        str(OUT / "common" / "tts"),
+    ], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    print(result.stdout)
+    if result.returncode != 0:
+        print(result.stderr[-3000:])
+        raise SystemExit("Ses denemesi başarısız")
 
 
 def main() -> None:
     # Windows konsolu (cp1252) Türkçe karakterleri yazamıyor
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
-    if len(sys.argv) < 2 or sys.argv[1] not in SHERPA_ARCHIVES:
+    if len(sys.argv) < 2 or sys.argv[1] not in SHERPA_NATIVE_JARS:
         raise SystemExit(__doc__)
     target_os = sys.argv[1]
     if "--smoke-only" in sys.argv:
         # Hazırlanmış (ve macOS'ta imzalanmış) paket üzerinde yalnızca ses denemesi
-        exe_name = "sherpa-onnx-offline-tts.exe" if target_os == "windows" else "sherpa-onnx-offline-tts"
-        smoke_test(OUT / target_os / "sherpa" / "bin" / exe_name, target_os)
+        smoke_test(OUT / target_os / "sherpa-native")
         return
-    for other in SHERPA_ARCHIVES:
+    for other in SHERPA_NATIVE_JARS:
         if other != target_os and (OUT / other).exists():
             shutil.rmtree(OUT / other)
     prepare_voices()
-    exe = prepare_sherpa(target_os)
+    native_dir = prepare_native(target_os)
     if "--smoke-test" in sys.argv:
-        smoke_test(exe, target_os)
+        smoke_test(native_dir)
     total = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file())
     print(f"hazır: {OUT} ({total / 1_048_576:.0f} MB)")
 
