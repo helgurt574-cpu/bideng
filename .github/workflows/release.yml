@@ -35,7 +35,7 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             target: linux
-            tasks: createDistributable packageDeb
+            tasks: createDistributable
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -80,6 +80,12 @@ jobs:
         working-directory: filiz-desktop
         run: ./gradlew --no-daemon --console=plain ${{ matrix.tasks }} -PbidengVersion="$VERSION"
 
+      - name: Linux — .deb oluştur
+        if: matrix.target == 'linux'
+        run: |
+          mkdir -p dist
+          filiz-desktop/tools/build_deb.sh filiz-desktop/build/compose/binaries/main/app/Bideng "$VERSION" "dist/Bideng-$VERSION-linux-amd64.deb"
+
       - name: Linux — AppImage oluştur
         if: matrix.target == 'linux'
         run: |
@@ -96,7 +102,7 @@ jobs:
           chmod +x "$APPDIR/AppRun"
           printf '%s\n' '[Desktop Entry]' 'Type=Application' 'Name=Bideng' \
             'Comment=Çevrimdışı sesli belge okuyucu' 'Exec=Bideng' 'Icon=bideng' \
-            'Categories=Office;Education;' 'Terminal=false' > "$APPDIR/bideng.desktop"
+            'Categories=Office;Education;' 'Terminal=false' 'StartupWMClass=com-example-filiz-desktop-MainKt' > "$APPDIR/bideng.desktop"
           curl -sL -o "$RUNNER_TEMP/appimagetool" https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x "$RUNNER_TEMP/appimagetool"
           mkdir -p dist
@@ -111,7 +117,6 @@ jobs:
               *.msi) cp "$f" "dist/Bideng-$VERSION-windows-x64.msi" ;;
               *.exe) cp "$f" "dist/Bideng-$VERSION-windows-x64-setup.exe" ;;
               *.dmg) cp "$f" "dist/Bideng-$VERSION-macos-apple-silicon.dmg" ;;
-              *.deb) cp "$f" "dist/Bideng-$VERSION-linux-amd64.deb" ;;
             esac
           done
           ls -la dist

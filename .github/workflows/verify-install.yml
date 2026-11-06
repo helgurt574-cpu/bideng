@@ -86,8 +86,10 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ./dl/*.deb xvfb
+          dpkg -s bideng | grep -E "^Status|^Version"
           dpkg -L bideng | grep -E "model.onnx|bin/Bideng|\.desktop"
-          find /opt/bideng -name model.onnx | wc -l | grep -qx 5
+          [ "$(find /opt/bideng -name model.onnx | wc -l)" -eq 5 ]
+          ls -la /usr/share/applications/bideng.desktop /usr/bin/bideng
       - name: Kurulu seslerle ses üret (.deb)
         run: |
           R=/opt/bideng/lib/app/resources
@@ -103,7 +105,7 @@ jobs:
         run: |
           chmod +x dl/*.AppImage
           cd dl && ./*.AppImage --appimage-extract >/dev/null && cd ..
-          find dl/squashfs-root -name model.onnx | wc -l | grep -qx 5
+          [ "$(find dl/squashfs-root -name model.onnx | wc -l)" -eq 5 ]
           ls dl/squashfs-root/AppRun dl/squashfs-root/bideng.desktop dl/squashfs-root/bideng.png
           set +e
           xvfb-run -a timeout 30 ./dl/*.AppImage --appimage-extract-and-run > appimage.log 2>&1
@@ -127,7 +129,8 @@ jobs:
           hdiutil attach dl/*.dmg -mountpoint /Volumes/Bideng -nobrowse
           cp -R /Volumes/Bideng/Bideng.app /Applications/
           hdiutil detach /Volumes/Bideng
-          find /Applications/Bideng.app -name model.onnx | wc -l | grep -qx 5
+          N=$(find /Applications/Bideng.app -name model.onnx | wc -l | tr -d ' ')
+          echo "model sayısı: $N"; [ "$N" -eq 5 ]
       - name: Kurulu seslerle ses üret
         run: |
           R=/Applications/Bideng.app/Contents/app/resources
