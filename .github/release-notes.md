@@ -11,6 +11,7 @@ Tüm sürümler **tamamen çevrimdışı** çalışır: sesler (Fahrettin, DFKI 
 | Windows 10/11 | `…-windows-x64-setup.exe` (önerilen) veya `…-windows-x64.msi` |
 | Mac (M1/M2/M3/M4) | `…-macos-apple-silicon.dmg` |
 | Linux (Ubuntu/Debian/Mint) | `…-linux-amd64.deb` |
+| Linux (tüm dağıtımlar, kurulumsuz) | `…-linux-x86_64.AppImage` |
 
 ### Kurulum
 
@@ -24,4 +25,10 @@ xattr -cr /Applications/Bideng.app
 
 **Linux:** Terminalde: `sudo apt install ./Bideng-*-linux-amd64.deb` — ardından menüden Bideng'i açın.
 
+**Linux AppImage:** `chmod +x Bideng-*.AppImage` ile çalıştırılabilir yapıp açın. Uygulama menüsüne eklemek için (Gear Lever ya da elle) kılavuzun 2.5 bölümüne bakın.
+
 **Android:** APK dosyasını telefonda açıp kurun (gerekirse "bilinmeyen kaynaklara izin ver"). Daha önce farklı imzalı eski bir Bideng kuruluysa önce onu kaldırın.
+
+### Kullanım kılavuzu
+
+Ayrıntılı kurulum ve kullanım için `Bideng-Kullanim-Kilavuzu.pdf` dosyasını indirin.
