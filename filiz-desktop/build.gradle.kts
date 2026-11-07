@@ -70,7 +70,7 @@ compose.desktop {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Dmg, TargetFormat.Deb)
 
             packageName = "Bideng"
-            packageVersion = (findProperty("bidengVersion") as String?) ?: "1.0.0"
+            packageVersion = (findProperty("bidengVersion") as String?) ?: "1.1.0"
 
             description = "Bideng - Offline E-Reader with TTS"
             copyright = "Copyright 2026"

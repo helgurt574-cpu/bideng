@@ -45,6 +45,7 @@ object TTSService : SpeechEngine {
     // Yerel TTS motoru iş parçacığı güvenli değil: oluşturma, seslendirme ve serbest bırakma tek tek yapılmalı.
     // Yoksa önceki okumanın generate() çağrısı sürerken yeni okuma motoru kullanır ya da siler ve uygulama çöker.
     private val engineLock = Any()
+    private val muteOutput = System.getenv("BIDENG_SELFTEST_MUTE") != null
     private var engineVoiceId: String? = null
     private var currentLine: SourceDataLine? = null
     private var defaultSleepTimerMinutes: Int? = 30
@@ -258,6 +259,15 @@ object TTSService : SpeechEngine {
         onRange: (Int, Int) -> Unit,
         session: Int
     ) {
+        if (muteOutput) {
+            // Ses kartı olmayan test makineleri: çalma süresi kadar beklenir
+            var played = 0
+            while (isActive(session) && played < samples.size && !sleepTimerExpired()) {
+                Thread.sleep(50)
+                played += sampleRate / 20
+            }
+            return
+        }
         val format = AudioFormat(sampleRate.toFloat(), 16, 1, true, false)
         val line = AudioSystem.getLine(DataLine.Info(SourceDataLine::class.java, format)) as SourceDataLine
         currentLine = line
