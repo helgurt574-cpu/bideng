@@ -1,7 +1,10 @@
 package com.example.filiz.desktop
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.res.painterResource
@@ -39,7 +42,8 @@ fun main() {
         )
         val scope = rememberCoroutineScope()
         val state = remember { AppState(scope, appDir, TTSService) }
-        val import = { state.importFiles(chooseDocuments(state.strings.chooseFiles)) }
+        var mainWindow by remember { mutableStateOf<java.awt.Frame?>(null) }
+        val import = { state.importFiles(chooseDocuments(state.strings.chooseFiles, mainWindow)) }
 
         LaunchedEffect(windowState) {
             snapshotFlow { windowState.size }.collect { size ->
@@ -63,7 +67,17 @@ fun main() {
             icon = painterResource("icons/ic_launcher.png"),
             onPreviewKeyEvent = { handleAppKey(state, it, import) }
         ) {
-            LaunchedEffect(Unit) { window.minimumSize = Dimension(760, 560) }
+            LaunchedEffect(Unit) {
+                window.minimumSize = Dimension(760, 560)
+                mainWindow = window
+            }
+            if (System.getenv("BIDENG_DIALOG_PROBE") != null) {
+                // Tanılama: "Belge ekle" düğmesinin yaptığını otomatik yapar (dosya penceresi denemesi)
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(2500)
+                    import()
+                }
+            }
             if (selfTestDocument != null) {
                 LaunchedEffect(Unit) {
                     val ok = runSelfTest(state, selfTestDocument)

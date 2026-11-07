@@ -57,8 +57,9 @@ import java.awt.dnd.DropTargetDropEvent
 import java.io.File
 
 /** Sistem dosya seçicisi (çoklu seçim). */
-fun chooseDocuments(title: String): List<File> {
-    val dialog = FileDialog(null as Frame?, title, FileDialog.LOAD).apply {
+fun chooseDocuments(title: String, parent: Frame? = null): List<File> {
+    // Ana pencereye bağlı açılsın: sahipsiz pencere GNOME/Wayland'da uygulamanın arkasında kalabiliyor
+    val dialog = FileDialog(parent, title, FileDialog.LOAD).apply {
         isMultipleMode = true
         directory = System.getProperty("user.home")
         filenameFilter = java.io.FilenameFilter { _, name ->
@@ -84,7 +85,7 @@ fun handleAppKey(state: AppState, event: KeyEvent, onImport: () -> Unit): Boolea
 }
 
 @Composable
-fun App(state: AppState, window: ComposeWindow? = null, onImport: () -> Unit = { state.importFiles(chooseDocuments(state.strings.chooseFiles)) }) {
+fun App(state: AppState, window: ComposeWindow? = null, onImport: () -> Unit = { state.importFiles(chooseDocuments(state.strings.chooseFiles, window)) }) {
     val strings = Strings(state.language)
     BidengTheme(state.themeMode) {
         CompositionLocalProvider(

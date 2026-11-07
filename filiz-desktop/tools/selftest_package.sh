@@ -5,11 +5,13 @@
 set -u
 app=$(realpath "$1"); shift
 status=0
+# macOS'ta timeout yok olabilir
+limit() { if command -v timeout >/dev/null; then timeout 600 "$@"; else "$@"; fi; }
 for doc in "$@"; do
     doc=$(realpath "$doc")
     home=$(mktemp -d)
     log="$home/selftest.log"
-    (cd "$home" && BIDENG_HOME="$home" BIDENG_SELFTEST="$doc" timeout 600 "$app" > "$log" 2>&1)
+    (cd "$home" && BIDENG_HOME="$home" BIDENG_SELFTEST="$doc" limit "$app" > "$log" 2>&1)
     code=$?
     echo "== $(basename "$doc"): çıkış kodu $code"
     grep "^SELFTEST" "$log" | grep -v "duraklat=true devam=true"

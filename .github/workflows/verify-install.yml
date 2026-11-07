@@ -9,7 +9,7 @@ on:
       tag:
         description: "Release etiketi"
         required: true
-        default: "v1.0.0"
+        default: "v1.0.2"
 
 permissions:
   contents: read
@@ -69,6 +69,19 @@ jobs:
           if ($p.HasExited) { throw "Bideng 30 saniye içinde kapandı (çıkış kodu $($p.ExitCode))" }
           "Bideng çalışıyor (PID $($p.Id))"
           Stop-Process $p.Id -Force
+      - name: Uygulamayı uçtan uca dene (belge aç, 5 sesle oku, zorlama)
+        shell: pwsh
+        run: |
+          foreach ($doc in "bideng-test.pdf", "bideng-test.docx", "farsca-test.txt") {
+            $home2 = New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\bh-$doc"
+            $env:BIDENG_HOME = $home2.FullName
+            $env:BIDENG_SELFTEST = (Resolve-Path "filiz-desktop/src/desktopTest/resources/testdocs/$doc").Path
+            $env:BIDENG_SELFTEST_MUTE = "1"
+            $p = Start-Process $env:APPEXE -PassThru -RedirectStandardOutput "selftest-$doc.log" -WorkingDirectory $home2.FullName
+            if (-not $p.WaitForExit(600000)) { $p.Kill(); throw "${doc}: öz-test 10 dakikada bitmedi" }
+            Get-Content "selftest-$doc.log" | Select-String "SELFTEST"
+            if ($p.ExitCode -ne 0) { throw "${doc}: öz-test başarısız (çıkış kodu $($p.ExitCode))" }
+          }
 
   linux:
     runs-on: ubuntu-22.04
@@ -101,6 +114,10 @@ jobs:
           code=$?
           tail -20 app.log
           [ $code -eq 124 ] && echo "Bideng 30 saniye çalıştı" || { echo "Bideng erken kapandı: $code"; exit 1; }
+      - name: Uygulamayı uçtan uca dene (.deb; belge aç, 5 sesle oku, zorlama)
+        run: |
+          D=filiz-desktop/src/desktopTest/resources/testdocs
+          BIDENG_SELFTEST_MUTE=1 xvfb-run -a filiz-desktop/tools/selftest_package.sh /opt/bideng/bin/Bideng $D/bideng-test.pdf $D/bideng-test.docx $D/farsca-test.txt
       - name: AppImage — içerik ve başlatma
         run: |
           chmod +x dl/*.AppImage
@@ -143,3 +160,7 @@ jobs:
           sleep 30
           tail -20 app.log
           kill -0 $PID && echo "Bideng 30 saniye çalıştı" && kill $PID
+      - name: Uygulamayı uçtan uca dene (belge aç, 5 sesle oku, zorlama)
+        run: |
+          D=filiz-desktop/src/desktopTest/resources/testdocs
+          BIDENG_SELFTEST_MUTE=1 filiz-desktop/tools/selftest_package.sh /Applications/Bideng.app/Contents/MacOS/Bideng $D/bideng-test.pdf $D/bideng-test.docx $D/farsca-test.txt
