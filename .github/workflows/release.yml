@@ -1,0 +1,157 @@
+name: Release
+
+# Windows (.msi/.exe), macOS Apple Silicon (.dmg) ve Linux (.deb) kurulum paketlerini
+# her sistemin kendi makinesinde üretir ve GitHub Release'e koyar.
+# Tüm sesler ve sherpa-onnx pakete gömülür: kurulan uygulama tamamen çevrimdışı çalışır.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Sürüm (ör. 1.0.0)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  desktop:
+    name: Masaüstü (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            target: windows
+            tasks: packageMsi packageExe
+          - name: macOS Apple Silicon
+            os: macos-15
+            target: macos
+            tasks: packageDmg
+          - name: Linux
+            os: ubuntu-22.04
+            target: linux
+            tasks: createDistributable
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sürüm numarası
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ inputs.version }}" >> "$GITHUB_ENV"
+          else
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          fi
+
+      - name: İndirme önbelleği (sesler, sherpa-onnx)
+        uses: actions/cache@v4
+        with:
+          path: filiz-desktop/build/download-cache
+          key: tts-${{ matrix.target }}-${{ hashFiles('filiz-desktop/tools/prepare_app_resources.py') }}
+
+      - name: Gömülü sesleri ve sherpa-onnx'i hazırla
+        run: python filiz-desktop/tools/prepare_app_resources.py ${{ matrix.target }}
+
+      - name: macOS — yerel kütüphaneleri ad-hoc imzala
+        if: matrix.target == 'macos'
+        run: codesign --force --sign - filiz-desktop/build/app-resources/macos/sherpa-native/*.dylib
+
+      - name: Ses denemesi (5 ses; Türkçe, Arapça, Farsça)
+        run: python filiz-desktop/tools/prepare_app_resources.py ${{ matrix.target }} --smoke-only
+
+      - name: Paketle
+        working-directory: filiz-desktop
+        run: ./gradlew --no-daemon --console=plain ${{ matrix.tasks }} -PbidengVersion="$VERSION"
+
+      - name: Linux — .deb oluştur
+        if: matrix.target == 'linux'
+        run: |
+          mkdir -p dist
+          filiz-desktop/tools/build_deb.sh filiz-desktop/build/compose/binaries/main/app/Bideng "$VERSION" "dist/Bideng-$VERSION-linux-amd64.deb"
+
+      - name: Linux — AppImage oluştur
+        if: matrix.target == 'linux'
+        run: |
+          APPDIR="$RUNNER_TEMP/Bideng.AppDir"
+          rm -rf "$APPDIR" && mkdir -p "$APPDIR"
+          cp -a filiz-desktop/build/compose/binaries/main/app/Bideng/. "$APPDIR/"
+          cp filiz-desktop/src/desktopMain/resources/icons/bideng.png "$APPDIR/bideng.png"
+          cat > "$APPDIR/AppRun" <<'APPRUN'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "$HERE/bin/Bideng" "$@"
+          APPRUN
+          sed -i 's/^          //' "$APPDIR/AppRun"
+          chmod +x "$APPDIR/AppRun"
+          printf '%s\n' '[Desktop Entry]' 'Type=Application' 'Name=Bideng' \
+            'Comment=Çevrimdışı sesli belge okuyucu' 'Exec=Bideng' 'Icon=bideng' \
+            'Categories=Office;Education;' 'Terminal=false' 'StartupWMClass=com-example-filiz-desktop-MainKt' > "$APPDIR/bideng.desktop"
+          curl -sL -o "$RUNNER_TEMP/appimagetool" https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x "$RUNNER_TEMP/appimagetool"
+          mkdir -p dist
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 "$RUNNER_TEMP/appimagetool" "$APPDIR" "dist/Bideng-$VERSION-linux-x86_64.AppImage"
+          ls -la dist
+
+      - name: Dosya adlarını düzenle
+        run: |
+          mkdir -p dist
+          find filiz-desktop/build/compose/binaries -type f \( -name '*.msi' -o -name '*.exe' -o -name '*.dmg' -o -name '*.deb' \) | while read -r f; do
+            case "$f" in
+              *.msi) cp "$f" "dist/Bideng-$VERSION-windows-x64.msi" ;;
+              *.exe) cp "$f" "dist/Bideng-$VERSION-windows-x64-setup.exe" ;;
+              *.dmg) cp "$f" "dist/Bideng-$VERSION-macos-apple-silicon.dmg" ;;
+            esac
+          done
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bideng-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1  # dosyalar Release'e konuyor; Actions depolama kotası dolmasın
+
+  release:
+    name: GitHub Release
+    needs: desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Release oluştur / güncelle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          TAG="v$VERSION"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "Bideng $VERSION" --notes-file .github/release-notes.md
+          fi
+          gh release upload "$TAG" dist/* --clobber

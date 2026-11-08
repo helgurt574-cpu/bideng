@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Bideng Kullanım Kılavuzu</title>
+<style>
+  body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #1f1d24; }
+  h1 { font-size: 24pt; color: #4b3bc4; margin-bottom: 2pt; }
+  h2 { font-size: 16pt; color: #4b3bc4; border-bottom: 1px solid #ddd8f5; padding-bottom: 3pt; margin-top: 22pt; page-break-after: avoid; }
+  h3 { font-size: 12.5pt; color: #2b2560; margin-top: 14pt; page-break-after: avoid; }
+  .alt { color: #6e6a75; font-size: 12pt; margin-top: 0; }
+  .not { background: #f1eefc; border-left: 4px solid #6348eb; padding: 6pt 10pt; margin: 8pt 0; }
+  .uyari { background: #fff4e5; border-left: 4px solid #d98a14; padding: 6pt 10pt; margin: 8pt 0; }
+  code, pre { font-family: "Liberation Mono", "Courier New", monospace; font-size: 9.5pt; }
+  pre { background: #f4f3f7; border: 1px solid #e3e0ea; padding: 7pt 9pt; white-space: pre-wrap; }
+  table.tablo { border-collapse: collapse; width: 100%; margin: 6pt 0; }
+  table.tablo th, table.tablo td { border: 1px solid #ddd8e8; padding: 4pt 6pt; vertical-align: top; text-align: left; }
+  table.tablo th { background: #efecfb; }
+  table.gorsel td { text-align: center; vertical-align: top; padding: 4pt; font-size: 9pt; color: #6e6a75; }
+  kbd { font-family: "Liberation Mono", monospace; font-size: 9.5pt; border: 1px solid #c9c5d6; padding: 0 3pt; background: #f7f6fa; }
+</style>
+</head>
+<body>
+
+<h1>Bideng Kullanım Kılavuzu</h1>
+<p class="alt">Android 1.1 · Masaüstü 1.1.1 (Windows, Mac Apple Silicon, Linux) · Kasım 2026</p>
+
+<p>Bideng, belgelerinizi sesli okuyan bir okuma uygulamasıdır. PDF, EPUB, Word ve diğer belgeleri açar; Türkçe, Arapça ve Farsça metinleri <b>internet bağlantısı olmadan</b> seslendirir. Kaldığınız yeri hatırlar, not almanızı sağlar ve göz yormayan okuma temaları sunar.</p>
+
+<div class="not"><b>Tamamen çevrimdışı:</b> Sesler ve ses motoru kurulum dosyasının içindedir. Kurulumdan sonra Bideng hiçbir şey indirmez, belgeleriniz cihazınızdan dışarı çıkmaz. (Tek istisna: Android'in küçük “online” sürümünde ek sesleri isterseniz indirebilirsiniz.)</div>
+
+<h2>1. Hangi sürümü kurmalıyım?</h2>
+<table class="tablo" border="1" cellpadding="5" cellspacing="0">
+  <tr><th>Cihaz</th><th>Dosya</th><th>Not</th></tr>
+  <tr><td>Android telefon / tablet</td><td><code>Bideng-1.1-offline.apk</code></td><td>Önerilen. 5 sesin hepsi içinde (~300 MB), internet hiç gerekmez.</td></tr>
+  <tr><td>Android (yer az ise)</td><td><code>Bideng-1.1-online.apk</code></td><td>~80 MB. Yalnızca Fahrettin (Türkçe) sesi gelir; diğer sesler uygulama içinden indirilir.</td></tr>
+  <tr><td>Windows 10 / 11</td><td><code>…-windows-x64-setup.exe</code></td><td>Kurulum sihirbazı. Alternatif: <code>.msi</code></td></tr>
+  <tr><td>Mac (M1, M2, M3, M4…)</td><td><code>…-macos-apple-silicon.dmg</code></td><td>Intel işlemcili Mac'ler desteklenmez.</td></tr>
+  <tr><td>Linux (Ubuntu, Mint, Debian)</td><td><code>…-linux-amd64.deb</code></td><td>Sisteme kurulur, menüye kendiliğinden eklenir.</td></tr>
+  <tr><td>Linux (tüm dağıtımlar)</td><td><code>…-linux-x86_64.AppImage</code></td><td>Kurulum gerektirmeyen tek dosya. Menüye ekleme: bölüm 2.5.</td></tr>
+</table>
+
+<p><b>Sesler:</b> Fahrettin ve DFKI (Türkçe), Kareem (Arapça), Amir ve Gyro (Farsça).<br>
+<b>Desteklenen belgeler:</b> PDF (taranmış PDF'ler dahil), EPUB, DOCX, DOC, ODT, RTF, HTML, TXT.<br>
+<b>Arayüz dilleri:</b> Türkçe, Kurdî (Kurmancî), Arapça.<br>
+<b>Gereksinimler:</b> Android 6.0 ve üzeri, 64 bit (ARM64) işlemcili telefon/tablet (son yıllarda çıkan cihazların neredeyse hepsi) · Windows 10/11 (64 bit) · Apple Silicon işlemcili Mac · 64 bit Linux.</p>
+<div class="not"><b>Google Play sürümü:</b> Bideng Google Play'de yayınlandığında Play'deki sürüm (en az Android 7.0) telefona <b>ayrı bir uygulama</b> olarak kurulur. APK ile kurduğunuz Bideng'in kütüphanesi ve notları ona aktarılmaz; ikisi yan yana durabilir.</div>
+
+<h2>2. Kurulum</h2>
+
+<h3>2.1 Android</h3>
+<ol>
+  <li>APK dosyasını telefona aktarın (USB, Bluetooth, WhatsApp/Telegram vb.) ve dosyaya dokunun.</li>
+  <li>“Bu kaynaktan uygulama yüklemeye izin verilmiyor” uyarısı çıkarsa <b>Ayarlar → Bu kaynaktan izin ver</b> deyip geri dönün.</li>
+  <li><b>Yükle</b>'ye dokunun. Kurulum bitince Bideng uygulama listesinde görünür.</li>
+</ol>
+<div class="uyari">Telefonda daha önce <b>farklı imzalı eski bir Bideng</b> kuruluysa “uygulama yüklenmedi” hatası alırsınız. Bu durumda eski sürümü kaldırıp yeniden kurun (eski kütüphane ve notlar silinir). Online ve offline sürüm aynı imzayla gelir; biri diğerinin üzerine veri kaybı olmadan kurulabilir.</div>
+
+<h3>2.2 Windows</h3>
+<ol>
+  <li><code>…-windows-x64-setup.exe</code> dosyasını çift tıklayın.</li>
+  <li>“Windows bilgisayarınızı korudu” uyarısı çıkarsa <b>Ek bilgi → Yine de çalıştır</b> deyin. (Uygulama henüz ücretli bir kod imzalama sertifikasıyla imzalanmadığı için bu uyarı normaldir.)</li>
+  <li>Kurulum klasörünü seçip ilerleyin. Bideng, Başlat menüsüne ve masaüstüne kısayol olarak eklenir.</li>
+</ol>
+<p>Kaldırmak için: <b>Ayarlar → Uygulamalar → Bideng → Kaldır</b>.</p>
+
+<h3>2.3 Mac (Apple Silicon)</h3>
+<ol>
+  <li><code>.dmg</code> dosyasını çift tıklayın; açılan pencerede <b>Bideng</b> simgesini <b>Applications (Uygulamalar)</b> klasörüne sürükleyin.</li>
+  <li>İlk açılışta “geliştirici doğrulanamadı” uyarısı çıkarsa: Uygulamalar klasöründe Bideng'e <b>sağ tıklayın → Aç → Aç</b>. Bu yalnızca bir kez gerekir.</li>
+  <li>macOS 15 ve sonrasında “Aç” düğmesi görünmezse: <b>Sistem Ayarları → Gizlilik ve Güvenlik</b> bölümünün altındaki <b>Yine de Aç</b> düğmesine basın.</li>
+</ol>
+<p>Yine açılmazsa (“hasarlı” uyarısı gibi) Terminal'i açıp bir kez şu komutu çalıştırın, sonra Bideng'i normal açın:</p>
+<pre>xattr -cr /Applications/Bideng.app</pre>
+
+<h3>2.4 Linux — .deb paketi (Ubuntu, Linux Mint, Debian, Pardus)</h3>
+<p>Dosyanın bulunduğu klasörde terminal açıp:</p>
+<pre>sudo apt install ./Bideng-1.1.1-linux-amd64.deb</pre>
+<p>Kurulumdan sonra Bideng uygulama menüsünde (Ofis bölümü) görünür. Eski bir sürüm kuruluysa önce kaldırmanız gerekmez; yeni paket onun yerine geçer. Kaldırmak için: <code>sudo apt remove bideng</code></p>
+<div class="not"><b>Belge seçme penceresi:</b> Linux'ta “Belge ekle”, masaüstünüzün kendi dosya seçicisini açar (GNOME/XFCE/Cinnamon'da <code>zenity</code>, KDE'de <code>kdialog</code>). Bunlar kurulu değilse Bideng'in kendi, daha sade seçicisi açılır. Masaüstünüzün seçicisini kullanmak için: <code>sudo apt install zenity</code></div>
+
+<h3>2.5 Linux — AppImage ve uygulamalara ekleme</h3>
+<p>AppImage, kurulum gerektirmeyen tek bir dosyadır: indirip çalıştırılabilir yapmanız yeterlidir. Ancak kendiliğinden uygulama menüsüne eklenmez. Menüde (ve dock / görev çubuğunda) simgesiyle görünmesi için aşağıdaki yollardan <b>birini</b> seçin.</p>
+
+<h3>Önce: çalıştırılabilir yapın ve deneyin</h3>
+<pre>chmod +x Bideng-1.1.1-linux-x86_64.AppImage
+./Bideng-1.1.1-linux-x86_64.AppImage</pre>
+<p>Dosya yöneticisinden de yapabilirsiniz: dosyaya sağ tıklayın → <b>Özellikler → İzinler → “Programın çalıştırılmasına izin ver”</b>, sonra çift tıklayın.</p>
+<div class="uyari"><b>Açılmıyorsa (FUSE hatası):</b> AppImage'ların çalışması için <code>libfuse2</code> gerekir.<br>
+Ubuntu 22.04 / Mint 21: <code>sudo apt install libfuse2</code><br>
+Ubuntu 24.04 ve sonrası / Mint 22: <code>sudo apt install libfuse2t64</code><br>
+Kurmak istemezseniz şu şekilde de çalışır: <code>./Bideng-1.1.1-linux-x86_64.AppImage --appimage-extract-and-run</code></div>
+
+<h3>Yol 1 (en kolay): Gear Lever ile tek tıkla ekleme</h3>
+<p>Gear Lever, AppImage'ları menüye ekleyen küçük bir programdır (Flathub'da, tüm dağıtımlarda çalışır).</p>
+<ol>
+  <li>Gear Lever'ı kurun: Yazılım Merkezi'nde “Gear Lever” aratın ya da terminalde:
+  <pre>flatpak install flathub it.mijorus.gearlever</pre></li>
+  <li>Gear Lever'ı açın ve <code>.AppImage</code> dosyasını pencerenin içine <b>sürükleyip bırakın</b> (veya dosyaya sağ tıklayıp <b>Birlikte aç → Gear Lever</b>).</li>
+  <li><b>Unlock / Kilidi aç</b>, ardından <b>Move to the app menu / Uygulama menüsüne taşı</b> düğmesine basın.</li>
+</ol>
+<p>Bideng artık uygulama menüsünde simgesiyle görünür; dosya <code>~/AppImages</code> klasörüne taşınır. Kaldırmak için Gear Lever'da Bideng'i seçip <b>Kaldır</b> deyin.</p>
+
+<h3>Yol 2: Elle ekleme (her dağıtımda, ek program gerektirmez)</h3>
+<p>AppImage'ın bulunduğu klasörde terminal açıp aşağıdaki komutları <b>sırayla</b> çalıştırın. Bunlar dosyayı <code>~/Applications</code> klasörüne taşır, simgeyi çıkarır ve menü kaydını oluşturur:</p>
+<pre>mkdir -p ~/Applications ~/.local/share/applications ~/.local/share/icons
+mv Bideng-*-linux-x86_64.AppImage ~/Applications/Bideng.AppImage
+chmod +x ~/Applications/Bideng.AppImage
+
+# simgeyi AppImage'ın içinden çıkar
+cd /tmp &amp;&amp; ~/Applications/Bideng.AppImage --appimage-extract bideng.png
+cp /tmp/squashfs-root/bideng.png ~/.local/share/icons/bideng.png
+rm -rf /tmp/squashfs-root &amp;&amp; cd ~
+
+# menü kaydı
+cat &gt; ~/.local/share/applications/bideng.desktop &lt;&lt;EOF
+[Desktop Entry]
+Type=Application
+Name=Bideng
+Comment=Çevrimdışı sesli belge okuyucu
+Exec=$HOME/Applications/Bideng.AppImage %F
+Icon=$HOME/.local/share/icons/bideng.png
+Categories=Office;Education;
+Terminal=false
+EOF
+update-desktop-database ~/.local/share/applications 2&gt;/dev/null || true</pre>
+<p>Birkaç saniye içinde Bideng uygulama menüsünde görünür (görünmezse oturumu kapatıp açın). Simgeye sağ tıklayıp <b>Sık kullanılanlara / Panele ekle</b> diyerek dock'a sabitleyebilirsiniz.</p>
+<p><b>Kaldırmak için:</b></p>
+<pre>rm ~/Applications/Bideng.AppImage ~/.local/share/applications/bideng.desktop ~/.local/share/icons/bideng.png</pre>
+
+<h3>Yol 3: AppImageLauncher</h3>
+<p>AppImageLauncher kuruluysa (bazı dağıtımlarda hazır gelir), AppImage dosyasına çift tıkladığınızda “<b>Integrate and run / Entegre et ve çalıştır</b>” sorusu çıkar; onaylamanız yeterlidir. Uygulama <code>~/Applications</code> klasörüne taşınır ve menüye eklenir.</p>
+
+<div class="not"><b>Güncelleme:</b> Yeni sürüm çıktığında yeni AppImage dosyasını eskisinin yerine koymanız yeterlidir (Yol 2'de aynı adla <code>~/Applications/Bideng.AppImage</code> olarak). Kütüphaneniz ve notlarınız <code>~/.bideng</code> klasöründe saklandığı için kaybolmaz.</div>
+
+<h2>3. Android'de kullanım</h2>
+
+<h3>3.1 Belge ekleme ve kütüphane</h3>
+<table class="gorsel"><tr>
+  <td width="33%"><img src="img/01-kutuphane.jpg" width="200"><br>Kütüphane</td>
+  <td width="67%" style="text-align:left; font-size: 11pt; color: #1f1d24;">
+    <ul>
+      <li><b>Belge ekle</b> (sağ alt) ile telefonunuzdaki dosyaları seçin. Birden fazla dosyayı aynı anda seçebilirsiniz: ilkine uzun basıp diğerlerine dokunun.</li>
+      <li>En üstteki <b>Kaldığın yerden devam et</b> kartı son okuduğunuz belgeyi gösterir; ok düğmesi belgeyi açar. Sesli okumayı duraklattıysanız kartta ▶ düğmesi çıkar ve okumayı kaldığı cümleden sürdürür.</li>
+      <li>Her belgenin rengi türünü gösterir (PDF kırmızı, EPUB yeşil, Word mavi…). Alttaki çubuk ne kadarını okuduğunuzu gösterir.</li>
+      <li>Belgenin sağındaki <b>⋮</b> menüsünden <b>Yeniden adlandır</b> veya <b>Sil</b>.</li>
+      <li>Üstteki <b>büyüteç</b> ile kütüphanede ara (yazdıkça süzülür), <b>güneş/ay</b> simgesiyle tema değiştir, <b>not</b> simgesiyle tüm notları gör.</li>
+    </ul>
+  </td>
+</tr></table>
+
+<h3>3.2 Sesli okuma</h3>
+<table class="gorsel"><tr>
+  <td><img src="img/02-okuyucu.jpg" width="160"><br>Okuyucu</td>
+  <td><img src="img/06-okuma.jpg" width="160"><br>Okunuyor (cümle vurgulu)</td>
+  <td><img src="img/07-duraklatildi.jpg" width="160"><br>Duraklatıldı</td>
+</tr></table>
+<table class="tablo" border="1" cellpadding="5" cellspacing="0">
+  <tr><th>Ne yapmak istiyorum?</th><th>Nasıl?</th></tr>
+  <tr><td>Okumayı başlat</td><td>Alttaki büyük <b>▶</b> düğmesi. Ekranın en üstündeki satırdan başlar.</td></tr>
+  <tr><td>Belli bir kelimeden başlat</td><td>Metinde o kelimeye <b>dokunun</b>.</td></tr>
+  <tr><td>Duraklat / devam et</td><td>Okurken düğme <b>⏸</b> olur. Duraklatınca okunan cümle vurgulu kalır; <b>▶</b> tam o cümleden devam eder. Uygulamayı kapatsanız bile kaldığı yeri hatırlar. Okurken metne <b>çift dokunmak</b> da duraklatır.</td></tr>
+  <tr><td>Başka bir sayfadan okut</td><td>Okurken ekranı istediğiniz yere kaydırın: ekran sizi geri çekmez ve düğme <b>▶ (buradan oku)</b> olur; dokununca ekranda görünen yerden okumaya başlar. Duraklatılmışken uzak bir yere kaydırıp ▶'ye basmak da aynı şekilde görünen yerden başlatır.</td></tr>
+  <tr><td>Bir cümle geri / ileri</td><td><b>⏮ / ⏭</b> düğmeleri.</td></tr>
+  <tr><td>Tamamen durdur</td><td>Sağdaki <b>■</b> düğmesi (okuma yokken bu düğme otomatik kaydırmayı başlatır).</td></tr>
+  <tr><td>Telefon kilitliyken kontrol</td><td>Bildirim panelindeki Bideng kartından <b>Duraklat / Devam et</b>.</td></tr>
+  <tr><td>Belli bir süre sonra dursun</td><td>Ayarlar → <b>Uyku</b> (15, 30, 60 dk veya kapalı).</td></tr>
+  <tr><td>Sayfaya git</td><td>Alttaki kaydırma çubuğunu sürükleyin; sol tarafta sayfa, sağda yüzde görünür.</td></tr>
+  <tr><td>Metinde ara</td><td><b>Büyüteç</b> düğmesi; ˄ ˅ ile sonuçlar arasında gezinin.</td></tr>
+</table>
+
+<h3>3.3 Okuma ayarları</h3>
+<table class="gorsel"><tr>
+  <td><img src="img/03-ayarlar.jpg" width="160"><br>Okuma ayarları</td>
+  <td><img src="img/04-ses-secimi.jpg" width="160"><br>Ses seçimi</td>
+  <td><img src="img/05-gorunum.jpg" width="160"><br>Görünüm</td>
+</tr></table>
+<p>Alttaki <b>ayar</b> (sürgü) simgesi paneli açar:</p>
+<ul>
+  <li><b>Ses:</b> Fahrettin, DFKI (Türkçe), Kareem (Arapça), Amir, Gyro (Farsça). Belgenin diline uygun sesi seçin. <i>Online APK'da</i> yanında ⬇ olan sesler dokununca indirilir (~60 MB, Wi‑Fi önerilir); indirilen ses çöp kutusu simgesiyle silinebilir.</li>
+  <li><b>Konuşma hızı:</b> sürgüyü bırakınca okuma yeni hızla, okunan cümleden devam eder.</li>
+  <li><b>Görünüm:</b> <b>Açık</b>, <b>Sepya</b> (uzun okumada en rahat, sıcak kâğıt rengi) ve <b>Koyu</b> tema; yazı boyutu, satır aralığı ve yazı tipi. Değişiklikler anında metne yansır.</li>
+  <li><b>Dil:</b> arayüz dili (Türkçe, Kurdî, العربية). Arapça seçilince ekran sağdan sola düzenlenir.</li>
+  <li><b>Döndür / Kilitli:</b> ekranı o anki yönde (dikey ya da yatay) kilitler. Yatayda metin okunaklı bir sütunda ortalanır, kütüphane iki sütun olur.</li>
+</ul>
+
+<h3>3.4 Notlar</h3>
+<ol>
+  <li>Metinde bir kelimeye <b>uzun basın</b>; seçim başlar.</li>
+  <li>Tutamaçları sürükleyerek seçimi genişletin, alttaki <b>Not ekle</b>'ye dokunun. Not alınan metin altı çizili görünür.</li>
+  <li>Üstteki <b>not</b> simgesi notları listeler: bir nota dokunmak metindeki yerine götürür; <b>Dışa aktar</b> notları telefonun <b>Belgeler</b> klasörüne TXT olarak kaydeder; çöp kutusu notu siler.</li>
+</ol>
+
+<h3>3.5 Geri tuşu</h3>
+<p>Geri tuşu (veya geri hareketi) sırasıyla: not seçimini iptal eder → otomatik kaydırmayı durdurur → arama ve ayar panelini kapatır → okuyucudan kütüphaneye döner → kütüphanede uygulamayı arka plana alır (kapatmaz).</p>
+
+<h2>4. Masaüstünde kullanım (Windows, Mac, Linux)</h2>
+<p>Masaüstü uygulaması 1.1 sürümünden itibaren Android ile aynı tasarımdadır. Hangi sürümü kullandığınız kütüphane başlığının altında yazar (ör. <b>v1.1.1</b>).</p>
+<table class="resimler" cellpadding="4"><tr>
+  <td><img src="img/m1-kutuphane.jpg" width="300"><br>Kütüphane ve “Kaldığın yerden devam et”</td>
+  <td><img src="img/m2-okunuyor.jpg" width="300"><br>Okunuyor (cümle vurgulu)</td>
+</tr><tr>
+  <td><img src="img/m3-ayarlar.jpg" width="300"><br>Okuma ayarları (ses, hız, görünüm, dil, uyku)</td>
+  <td><img src="img/m4-notlar.jpg" width="300"><br>Notlar penceresi</td>
+</tr></table>
+<ul>
+  <li><b>Belge ekleme:</b> sağ alttaki <b>Belge ekle</b> düğmesi, <kbd>Ctrl</kbd>+<kbd>O</kbd> ya da dosyaları pencerenin üzerine <b>sürükleyip bırakın</b>. Birden çok dosya aynı anda seçilebilir. Belge, kütüphaneye kopyalanır; asıl dosyayı taşısanız da açılır.</li>
+  <li><b>Sesli okuma:</b> alttaki büyük <b>▶</b> düğmesi veya <kbd>Boşluk</kbd>. Okurken aynı düğme <b>duraklatır</b>; tekrar basınca kaldığı cümleden devam eder. ■ okumayı tamamen durdurur, ⏮ ⏭ önceki/sonraki cümleye geçer.</li>
+  <li><b>İstediğin yerden okuma:</b> metinde bir kelimeye tıklayın, okuma oradan başlar. Okurken aşağı kaydırırsanız düğmede “Buradan okumak için ▶” yazar; basınca ekranda gördüğünüz yerden okur.</li>
+  <li><b>Ayarlar:</b> ▶'nin solundaki ayar düğmesi; ses (5 ses hazır gelir), konuşma hızı, Görünüm (tema, yazı boyutu, satır aralığı, yazı tipi), arayüz dili (Türkçe, Kürtçe, Arapça), uyku zamanlayıcısı (15, 30, 60 dk veya kapalı) ve <b>Odak</b> (tam ekran okuma).</li>
+  <li><b>Not alma:</b> metinde bir bölümü fareyle seçip <b>Not ekle</b>'ye basın. Notlar sağ üstteki not düğmesinden açılır; nota tıklayınca o yere gider. Pencere <b>Kapat</b> düğmesi ya da <kbd>Esc</kbd> ile kapanır. <b>Dışa aktar</b> notları Belgeler klasörüne metin dosyası olarak kaydeder.</li>
+  <li><b>Kütüphaneye dönüş:</b> sol üstteki ← oku ya da <kbd>Esc</kbd>. Okuma duraklatılır ve kaldığınız yer saklanır.</li>
+  <li><b>Yeniden adlandırma / silme:</b> kütüphanede belge kartındaki ⋮ menüsünden.</li>
+</ul>
+<table class="tablo" border="1" cellpadding="5" cellspacing="0">
+  <tr><th>Kısayol</th><th>İşlev</th></tr>
+  <tr><td><kbd>Boşluk</kbd></td><td>Oynat / duraklat / devam et</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Belge ekle</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>Okuyucuda metinde ara; kütüphanede belge ara</td></tr>
+  <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>Yazı boyutunu büyüt / küçült</td></tr>
+  <tr><td><kbd>Page Down</kbd> / <kbd>Page Up</kbd></td><td>Bir ekran aşağı / yukarı</td></tr>
+  <tr><td><kbd>F11</kbd></td><td>Tam ekran</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Açık olanı kapat (seçim, arama, ayarlar, notlar); yoksa kütüphaneye dön</td></tr>
+</table>
+<p>Masaüstünde kütüphane ve notlar kullanıcı klasörünüzdeki <code>.bideng</code> klasöründe saklanır (Windows: <code>C:\Users\AdınızSoyadınız\.bideng</code>, Mac/Linux: <code>~/.bideng</code>). Bu klasörü yedeklemek kütüphanenizi yedekler.</p>
+
+<h2>5. Belgeler hakkında</h2>
+<ul>
+  <li><b>Tablolar</b> satır satır okunur; hücreler virgülle ayrılır (ör. “Kuyucaklı Yusuf, Sabahattin Ali, 232, Okundu”). PDF dosyalarında tablo yapısı saklanmadığı için hücreler yalnızca boşlukla ayrılmış olabilir.</li>
+  <li><b>Listeler</b> madde işaretiyle (•) gösterilir ve madde madde okunur.</li>
+  <li><b>Resimler</b> atlanır; resim altı yazıları okunur.</li>
+  <li><b>Taranmış PDF'ler</b> (yalnızca resimden oluşan sayfalar) Android'de karakter tanıma (OCR) ile açılır: ilk sayfalar hemen, kalanı arka planda hazırlanır. OCR'da küçük harf hataları olabilir. Masaüstü sürümünde OCR yoktur; böyle bir PDF eklenince bunu söyleyen bir uyarı çıkar.</li>
+  <li><b>Şifreli PDF'ler</b> açılamaz.</li>
+  <li>Bir belge ilk açılışta işlenir ve sonraki açılışlar hızlıdır.</li>
+</ul>
+
+<h2>6. Sorun giderme</h2>
+<table class="tablo" border="1" cellpadding="5" cellspacing="0">
+  <tr><th>Sorun</th><th>Çözüm</th></tr>
+  <tr><td>Ses gelmiyor</td><td>Telefonun <b>medya</b> sesini açın (zil sesi değil). Sessiz/titreşim modu medya sesini etkilemeyebilir; ses tuşlarına okurken basın.</td></tr>
+  <tr><td>Arapça / Farsça metin Türkçe gibi okunuyor</td><td>Ayarlar → Ses'ten belgenin diline uygun sesi seçin (Kareem, Amir, Gyro).</td></tr>
+  <tr><td>Uygulama Android'e yüklenmiyor</td><td>Farklı imzalı eski bir Bideng kurulu olabilir: eskisini kaldırıp yeniden kurun.</td></tr>
+  <tr><td>Bildirimde kontrol görünmüyor</td><td>Android'in sorduğu <b>bildirim iznine</b> izin verin (Ayarlar → Uygulamalar → Bideng → Bildirimler).</td></tr>
+  <tr><td>Mac'te “açılamıyor / hasarlı”</td><td>Bölüm 2.3'teki <code>xattr -cr</code> komutu.</td></tr>
+  <tr><td>Windows'ta mavi “korudu” ekranı</td><td><b>Ek bilgi → Yine de çalıştır</b>.</td></tr>
+  <tr><td>AppImage açılmıyor</td><td><code>libfuse2</code> kurun ya da <code>--appimage-extract-and-run</code> ile çalıştırın (bölüm 2.5).</td></tr>
+  <tr><td>AppImage menüde görünmüyor</td><td>Bölüm 2.5'teki Yol 1 veya Yol 2'yi uygulayın; gerekirse oturumu kapatıp açın.</td></tr>
+  <tr><td>Linux'ta yeni sürümü kurdum ama eski görünüm açılıyor</td><td>Kurulum tamamlanmamış olabilir. Terminalde <code>dpkg -l bideng</code> yazın; sürüm 1.1.1 değilse paketin bulunduğu klasörde <code>sudo apt install ./Bideng-1.1.1-linux-amd64.deb</code> komutunu tekrar çalıştırın. Kütüphanede başlığın altında <b>v1.1.1</b> görünmelidir.</td></tr>
+  <tr><td>Linux'ta “Belge ekle” penceresi boş / gri açılıyor</td><td>1.1.1 sürümünde düzeltildi; güncelleyin. Bideng'in kendi seçicisi yerine masaüstünüzünkini isterseniz <code>sudo apt install zenity</code> (bölüm 2.4).</td></tr>
+  <tr><td>Masaüstünde ▶'ye basınca ses gelmiyor</td><td>Bilgisayarın ses çıkışını (hoparlör/kulaklık) ve ses düzeyini kontrol edin; çıkış aygıtını değiştirdiyseniz Bideng'i kapatıp yeniden açın.</td></tr>
+  <tr><td>Android'de “uygulama telefonunuzla uyumlu değil”</td><td>Bideng 64 bit (ARM64) telefonlarda çalışır; çok eski 32 bit telefonlarda kurulamaz.</td></tr>
+  <tr><td>Belge açılmadı</td><td>Dosyanın bozuk ya da şifreli olmadığını kontrol edin; başka biçimde (ör. PDF yerine EPUB/DOCX) deneyin.</td></tr>
+</table>
+
+<h2>7. Gizlilik</h2>
+<p>Bideng reklam, hesap veya izleme içermez. Belgeleriniz, notlarınız ve okuma geçmişiniz yalnızca cihazınızda saklanır. Uygulama internete yalnızca online Android sürümünde, siz bir ses indirmeyi onayladığınızda bağlanır. Gizlilik politikasının tamamı: <a href="https://helgurt574-cpu.github.io/bideng-privacy/">helgurt574-cpu.github.io/bideng-privacy</a></p>
+
+</body>
+</html>

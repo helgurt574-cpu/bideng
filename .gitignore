@@ -1,0 +1,47 @@
+# Derleme çıktıları ve Gradle önbellekleri
+.gradle/
+build/
+**/build/
+.kotlin/
+**/.kotlin/
+local.properties
+/wrapper/
+/daemon/
+/native/
+/notifications/
+/kotlin-profile/
+
+# Editör / yerel araç ayarları
+.idea/
+.vscode/
+.claude/
+.agents/
+.codex
+
+# Büyük ikili dosyalar (Release'e eklenir, depoya girmez)
+*.apk
+*.aab
+*.zip
+4 ekm.apk
+cikti/
+hazir/
+indirilebilir-sesler/
+yedek_*/
+
+# Çevrimdışı APK'nın ses modelleri derlemede indirilir (filiz-desktop/tools/prepare_app_resources.py ile aynı kaynak)
+app/src/offline/assets/tts/*/model.onnx
+
+# Python önbelleği
+__pycache__/
+*.pyc
+
+# Play Store imza anahtarı (asla depoya girmez)
+keystore.properties
+*.jks
+*.keystore
+
+# Play Store hazırlıkları (yalnızca yerel)
+playstore/
+
+# Eski git geçmişinin yerel yedekleri
+.git-yedek/
