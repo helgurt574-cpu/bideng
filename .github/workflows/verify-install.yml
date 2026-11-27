@@ -9,7 +9,7 @@ on:
       tag:
         description: "Release etiketi"
         required: true
-        default: "v1.0.2"
+        default: "v1.1.2"
 
 permissions:
   contents: read
@@ -131,7 +131,16 @@ jobs:
           [ $code -eq 124 ] && echo "AppImage 30 saniye çalıştı" || { echo "AppImage erken kapandı: $code"; exit 1; }
 
   macos:
-    runs-on: macos-15
+    name: macos (${{ matrix.dmg }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            dmg: apple-silicon
+          - os: macos-15-intel
+            dmg: intel
+    runs-on: ${{ matrix.os }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -142,7 +151,7 @@ jobs:
           java-version: "17"
       - name: Paketi indir ve kur
         run: |
-          gh release download "${{ inputs.tag }}" --pattern "*.dmg" --dir dl
+          gh release download "${{ inputs.tag }}" --pattern "*macos-${{ matrix.dmg }}.dmg" --dir dl
           hdiutil attach dl/*.dmg -mountpoint /Volumes/Bideng -nobrowse
           cp -R /Volumes/Bideng/Bideng.app /Applications/
           hdiutil detach /Volumes/Bideng

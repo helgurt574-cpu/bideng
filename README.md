@@ -15,7 +15,7 @@ JDK 17 gerekir.
 
 ```bash
 ./gradlew assembleOfflineRelease                                  # Android
-python3 filiz-desktop/tools/prepare_app_resources.py <windows|macos|linux>
+python3 filiz-desktop/tools/prepare_app_resources.py <windows|macos|macos-intel|linux>
 cd filiz-desktop && ./gradlew packageDistributionForCurrentOS      # Windows, Linux, macOS
 ```
 

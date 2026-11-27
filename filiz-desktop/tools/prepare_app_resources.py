@@ -4,7 +4,8 @@
 build/app-resources/common/tts/      -> ortak espeak-ng verisi + 5 ses (model.onnx + tokens.txt)
 build/app-resources/<os>/sherpa-native/ -> o işletim sistemine ait sherpa-onnx JNI + onnxruntime kütüphaneleri
 
-Kullanım: python3 tools/prepare_app_resources.py <windows|macos|linux> [--smoke-test | --smoke-only]
+Kullanım: python3 tools/prepare_app_resources.py <windows|macos|macos-intel|linux> [--smoke-test | --smoke-only]
+macos = Apple Silicon (arm64), macos-intel = Intel Mac (x86_64); ikisi de build/app-resources/macos/ altına yazılır.
 Yalnızca derleme sırasında internet gerekir; kurulan uygulama hiçbir şey indirmez.
 """
 import hashlib
@@ -28,8 +29,11 @@ SHERPA_VERSION = "1.13.8"
 SHERPA_NATIVE_JARS = {
     "windows": f"sherpa-onnx-native-lib-win-x64-{SHERPA_VERSION}.jar",
     "macos": f"sherpa-onnx-native-lib-osx-aarch64-{SHERPA_VERSION}.jar",
+    "macos-intel": f"sherpa-onnx-native-lib-osx-x64-{SHERPA_VERSION}.jar",
     "linux": f"sherpa-onnx-native-lib-linux-x64-{SHERPA_VERSION}.jar",
 }
+# Compose Desktop yalnızca işletim sistemi adlı klasörü (windows/macos/linux) okur
+RESOURCE_DIRS = {"windows": "windows", "macos": "macos", "macos-intel": "macos", "linux": "linux"}
 SHERPA_JVM_JAR = DESKTOP / "libs" / f"sherpa-onnx-jvm-{SHERPA_VERSION}.jar"
 
 HF = "https://huggingface.co/csukuangfj"
@@ -93,9 +97,9 @@ def prepare_native(target_os: str) -> Path:
     jar_name = SHERPA_NATIVE_JARS[target_os]
     url = f"https://github.com/k2-fsa/sherpa-onnx/releases/download/v{SHERPA_VERSION}/{jar_name}"
     jar = download(url, CACHE / jar_name)
-    destination = OUT / target_os / "sherpa-native"
-    if (OUT / target_os).exists():
-        shutil.rmtree(OUT / target_os)
+    destination = OUT / RESOURCE_DIRS[target_os] / "sherpa-native"
+    if destination.parent.exists():
+        shutil.rmtree(destination.parent)
     destination.mkdir(parents=True)
     with zipfile.ZipFile(jar) as archive:
         for entry in archive.namelist():
@@ -134,10 +138,10 @@ def main() -> None:
     target_os = sys.argv[1]
     if "--smoke-only" in sys.argv:
         # Hazırlanmış (ve macOS'ta imzalanmış) paket üzerinde yalnızca ses denemesi
-        smoke_test(OUT / target_os / "sherpa-native")
+        smoke_test(OUT / RESOURCE_DIRS[target_os] / "sherpa-native")
         return
-    for other in SHERPA_NATIVE_JARS:
-        if other != target_os and (OUT / other).exists():
+    for other in set(RESOURCE_DIRS.values()) - {RESOURCE_DIRS[target_os]}:
+        if (OUT / other).exists():
             shutil.rmtree(OUT / other)
     prepare_voices()
     native_dir = prepare_native(target_os)
