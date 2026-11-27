@@ -7,9 +7,9 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-val javacppVersion = "1.5.14"
-val tesseractVersion = "5.5.3-$javacppVersion"
-val leptonicaVersion = "1.87.0-$javacppVersion"
+val javacppVersion = "1.5.11" // 1.5.12+ macOS 13.7 / 15 ister; 1.5.11 her Ventura sürümünde (12.7+) çalışır
+val tesseractVersion = "5.5.0-$javacppVersion"
+val leptonicaVersion = "1.85.0-$javacppVersion"
 val javacppPlatform: String = run {
     val os = System.getProperty("os.name").lowercase()
     val arm = System.getProperty("os.arch").lowercase().let { it == "aarch64" || it == "arm64" }
