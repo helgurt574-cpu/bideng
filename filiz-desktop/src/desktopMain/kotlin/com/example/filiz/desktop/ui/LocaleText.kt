@@ -71,6 +71,11 @@ class Strings(val language: UiLanguage) {
     )
     fun importing(name: String) = t("İçe aktarılıyor: $name", "Tê barkirin: $name", "جارٍ الاستيراد: $name")
     fun opening(name: String) = t("Açılıyor: $name", "Tê vekirin: $name", "جارٍ الفتح: $name")
+    fun recognizing(name: String, page: Int, total: Int) = t(
+        "Taranmış sayfalar okunuyor (OCR): $name — sayfa $page/$total",
+        "Rûpelên skankirî tên xwendin (OCR): $name — rûpel $page/$total",
+        "جارٍ التعرف على الصفحات الممسوحة (OCR): $name — صفحة $page/$total"
+    )
     fun imported(name: String) = t("Eklendi: $name", "Hat zêdekirin: $name", "تمت الإضافة: $name")
     val unsupported get() = t("Desteklenen belge bulunamadı", "Belgeyeke piştgirîkirî nehat dîtin", "لم يتم العثور على مستند مدعوم")
     val fileMissing get() = t("Belge dosyası bulunamadı", "Pela belgeyê nehat dîtin", "لم يتم العثور على ملف المستند")

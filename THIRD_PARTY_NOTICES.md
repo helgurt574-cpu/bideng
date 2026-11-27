@@ -37,6 +37,9 @@ Sherpa-onnx biçimine dönüştürülmüş kopyalar: https://huggingface.co/csuk
 | jsoup | MIT | https://jsoup.org |
 | tess-two (Tesseract OCR, Leptonica) | Apache-2.0 / BSD-2-Clause | https://github.com/rmtheis/tess-two |
 | Tesseract eğitim verisi (tur, eng) | Apache-2.0 | https://github.com/tesseract-ocr/tessdata |
+| Tesseract OCR ve Leptonica (masaüstü) | Apache-2.0 / BSD-2-Clause | https://github.com/tesseract-ocr/tesseract · http://leptonica.org |
+| JavaCPP ve JavaCPP Presets (masaüstü) | Apache-2.0 | https://github.com/bytedeco/javacpp-presets |
+| Tesseract eğitim verisi (masaüstü: tur, eng, ara, fas) | Apache-2.0 | https://github.com/tesseract-ocr/tessdata_best |
 
 ## Uygulama çatısı / App frameworks
 

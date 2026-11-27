@@ -84,6 +84,10 @@ jobs:
       - name: Ses denemesi (5 ses; Türkçe, Arapça, Farsça)
         run: python filiz-desktop/tools/prepare_app_resources.py ${{ matrix.target }} --smoke-only
 
+      - name: Belge okuma testleri (taranmış PDF / OCR dahil)
+        working-directory: filiz-desktop
+        run: ./gradlew --no-daemon --console=plain desktopTest --tests '*DocumentReaderTest*'
+
       - name: Paketle
         working-directory: filiz-desktop
         run: ./gradlew --no-daemon --console=plain ${{ matrix.tasks }} -PbidengVersion="$VERSION"
@@ -104,7 +108,12 @@ jobs:
             if [ -n "$minos" ] && [ "$(printf '%s\n' "$minos" 13.0 | sort -V | tail -1)" != 13.0 ] && [ "$minos" != 13.0 ]; then
               echo "::error::macOS 13'te çalışmaz (minos $minos): $f"; bad=1
             fi
-          done < <(find "$APP" -type f \( -perm -u+x -o -name '*.dylib' -o -name '*.jnilib' \))
+          done < <(find "$APP" -type f \( -perm -u+x -o -name '*.dylib' -o -name '*.jnilib' \); \
+                   # OCR (JavaCPP) yerel kütüphaneleri jar içinde gelir, çalışırken açılır
+                   J="$RUNNER_TEMP/jarnative"; rm -rf "$J"; mkdir -p "$J"; \
+                   for jar in "$APP"/Contents/app/*macosx*.jar; do unzip -q -o "$jar" '*.dylib' -d "$J/$(basename "$jar")" || true; done; \
+                   find "$J" -name '*.dylib' -type f)
+          ls "$APP"/Contents/app/ | grep -E "tesseract|leptonica|javacpp"
           [ -d /Volumes/Bideng ] && hdiutil detach /Volumes/Bideng || true
           exit $bad
 

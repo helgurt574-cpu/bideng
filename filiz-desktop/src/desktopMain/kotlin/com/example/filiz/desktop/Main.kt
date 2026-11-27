@@ -14,6 +14,7 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.example.filiz.desktop.service.DatabaseService
+import com.example.filiz.desktop.service.OcrService
 import com.example.filiz.desktop.service.PreferenceService
 import com.example.filiz.desktop.service.TTSService
 import com.example.filiz.desktop.ui.App
@@ -31,6 +32,7 @@ fun main() {
     val selfTestDocument = System.getenv("BIDENG_SELFTEST")?.let(::File)
     DatabaseService.initialize(File(appDir, "library.db").absolutePath)
     PreferenceService.initialize(appDir)
+    OcrService.cacheDir = File(appDir, "ocr")
     TTSService.initialize()
     TTSService.setDefaultSleepTimer(PreferenceService.getSleepMinutes().takeIf { it > 0 })
 

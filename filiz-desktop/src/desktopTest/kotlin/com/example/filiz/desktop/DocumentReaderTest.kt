@@ -1,7 +1,8 @@
 package com.example.filiz.desktop
 
 import com.example.filiz.desktop.service.DocumentReaderService
-import com.example.filiz.desktop.service.UnreadableDocumentException
+import com.example.filiz.desktop.service.OcrService
+import org.junit.Assume.assumeTrue
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -62,12 +63,23 @@ class DocumentReaderTest {
         assertTrue(text.startsWith("آزمایش خواندن فارسی"))
     }
 
+    // OCR dil verileri: önce `python3 tools/prepare_app_resources.py <sistem>` çalıştırılmalı
     @Test
-    fun scannedPdfGivesClearMessage() {
-        val error = assertFailsWith<UnreadableDocumentException> {
-            DocumentReaderService.readDocumentContent(doc("taranmis.pdf"))
-        }
-        assertTrue(error.message!!.contains("taranmış"))
+    fun scannedPdfIsReadWithOcr() {
+        assumeTrue(OcrService.isAvailable())
+        var progress = 0
+        val content = DocumentReaderService.readDocumentContent(doc("taranmis.pdf")) { page, _ -> progress = page }
+        val text = content.text
+        assertTrue(progress >= 1, "OCR ilerlemesi bildirilmedi")
+        assertTrue(text.contains("Taranmış Belge Örneği"), "OCR başlığı okuyamadı:\n$text")
+        assertTrue(text.contains("alışkanlıkları"), "Türkçe harfler kayboldu:\n$text")
+    }
+
+    @Test
+    fun scannedPersianPdfPicksArabicScript() {
+        assumeTrue(OcrService.isAvailable())
+        val text = DocumentReaderService.readDocumentContent(doc("taranmis-farsca.pdf")).text
+        assertTrue(text.contains("فارسی"), "Farsça okunamadı:\n$text")
     }
 
     @Test

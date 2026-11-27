@@ -2,6 +2,7 @@
 """Masaüstü kurulum paketine gömülecek dosyaları hazırlar (tamamen çevrimdışı çalışma için).
 
 build/app-resources/common/tts/      -> ortak espeak-ng verisi + 5 ses (model.onnx + tokens.txt)
+build/app-resources/common/tessdata/ -> taranmış PDF için OCR dil verileri (Türkçe, İngilizce, Arapça, Farsça)
 build/app-resources/<os>/sherpa-native/ -> o işletim sistemine ait sherpa-onnx JNI + onnxruntime kütüphaneleri
 
 Kullanım: python3 tools/prepare_app_resources.py <windows|macos|macos-intel|linux> [--smoke-test | --smoke-only]
@@ -49,6 +50,15 @@ DOWNLOADED_VOICES = [
      "79646f0a1942d8be05562f4103da6470bcf69337e65bd8a1ec95afe1c6a89e6b"),
 ]
 
+# Tesseract LSTM modelleri (tessdata_best 4.1.0); OCR yerel kütüphaneleri Gradle'dan gelir (org.bytedeco:tesseract)
+TESSDATA = "https://github.com/tesseract-ocr/tessdata_best/raw/4.1.0"
+OCR_LANGUAGES = [
+    ("tur", "e0c3338dc17503dc7d335a507c9ae01b2b46cfd07561171e1e1ac55d85e8e438"),
+    ("eng", "8280aed0782fe27257a68ea10fe7ef324ca0f8d85bd2fd145d1c2b560bcb66ba"),
+    ("ara", "ab9d157d8e38ca00e7e39c7d5363a5239e053f5b0dbdb3167dde9d8124335896"),
+    ("fas", "99e420969b5ddd2cb135b416316a7ed417c59c4faf9e0d28941348f6448114df"),
+]
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -91,6 +101,16 @@ def prepare_voices() -> None:
         voice_dir.mkdir()
         shutil.copy2(model, voice_dir / "model.onnx")
         shutil.copy2(ANDROID_TTS / directory / "tokens.txt", voice_dir / "tokens.txt")
+
+
+def prepare_tessdata() -> None:
+    tessdata = OUT / "common" / "tessdata"
+    if tessdata.exists():
+        shutil.rmtree(tessdata)
+    tessdata.mkdir(parents=True)
+    for language, expected in OCR_LANGUAGES:
+        name = f"{language}.traineddata"
+        shutil.copy2(download(f"{TESSDATA}/{name}", CACHE / "tessdata_best" / name, expected), tessdata / name)
 
 
 def prepare_native(target_os: str) -> Path:
@@ -144,6 +164,7 @@ def main() -> None:
         if (OUT / other).exists():
             shutil.rmtree(OUT / other)
     prepare_voices()
+    prepare_tessdata()
     native_dir = prepare_native(target_os)
     if "--smoke-test" in sys.argv:
         smoke_test(native_dir)

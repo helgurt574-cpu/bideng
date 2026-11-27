@@ -7,6 +7,19 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+val javacppVersion = "1.5.14"
+val tesseractVersion = "5.5.3-$javacppVersion"
+val leptonicaVersion = "1.87.0-$javacppVersion"
+val javacppPlatform: String = run {
+    val os = System.getProperty("os.name").lowercase()
+    val arm = System.getProperty("os.arch").lowercase().let { it == "aarch64" || it == "arm64" }
+    when {
+        os.contains("win") -> "windows-x86_64"
+        os.contains("mac") -> if (arm) "macosx-arm64" else "macosx-x86_64"
+        else -> if (arm) "linux-arm64" else "linux-x86_64"
+    }
+}
+
 repositories {
     google()
     mavenCentral()
@@ -34,6 +47,12 @@ kotlin {
                 // Sesli okuma: sherpa-onnx Java API (yerel kütüphaneler pakete gömülür, bkz. tools/prepare_app_resources.py)
                 implementation(files("libs/sherpa-onnx-jvm-1.13.8.jar"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+
+                // Taranmış PDF için OCR: Tesseract (JavaCPP); yalnızca derlenen sistemin yerel kütüphaneleri pakete girer
+                implementation("org.bytedeco:tesseract:$tesseractVersion")
+                implementation("org.bytedeco:tesseract:$tesseractVersion:$javacppPlatform")
+                implementation("org.bytedeco:leptonica:$leptonicaVersion:$javacppPlatform")
+                implementation("org.bytedeco:javacpp:$javacppVersion:$javacppPlatform")
 
                 // PDF
                 implementation("org.apache.pdfbox:pdfbox:3.0.1")
@@ -70,7 +89,7 @@ compose.desktop {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Dmg, TargetFormat.Deb)
 
             packageName = "Bideng"
-            packageVersion = (findProperty("bidengVersion") as String?) ?: "1.1.2"
+            packageVersion = (findProperty("bidengVersion") as String?) ?: "1.2.0"
 
             description = "Bideng - Offline E-Reader with TTS"
             copyright = "Copyright 2026"

@@ -99,6 +99,11 @@ class AppState(
 
     private var picking = false
 
+    /** Taranmış PDF okunurken bekleme mesajında sayfa ilerlemesini gösterir. */
+    private fun ocrProgress(name: String): (Int, Int) -> Unit = { page, total ->
+        busyMessage = strings.recognizing(name, page, total)
+    }
+
     /** "Belge ekle": seçiciyi açar, seçilenleri içe aktarır. Vazgeçilirse hiçbir şey yapmaz. */
     fun pickAndImport(parent: java.awt.Frame?) {
         if (picking) return
@@ -152,10 +157,10 @@ class AppState(
             item.name == file.name && File(item.path).let { it.exists() && it.length() == file.length() }
         }
         if (existing != null) {
-            return existing to (contentCache[existing.id] ?: DocumentReaderService.readDocumentContent(File(existing.path)))
+            return existing to (contentCache[existing.id] ?: DocumentReaderService.readDocumentContent(File(existing.path), ocrProgress(file.name)))
         }
         // Önce oku: okunamayan belge kütüphaneye eklenmesin
-        val content = DocumentReaderService.readDocumentContent(file)
+        val content = DocumentReaderService.readDocumentContent(file, ocrProgress(file.name))
         val importsDir = File(dataDir, "imports").apply { mkdirs() }
         val base = file.nameWithoutExtension
         var target = File(importsDir, file.name)
@@ -189,7 +194,7 @@ class AppState(
         openJob = scope.launch {
             busyMessage = strings.opening(item.name)
             val result = withContext(io) {
-                runCatching { contentCache[item.id] ?: DocumentReaderService.readDocumentContent(file) }
+                runCatching { contentCache[item.id] ?: DocumentReaderService.readDocumentContent(file, ocrProgress(item.name)) }
             }
             busyMessage = null
             result.onSuccess { content ->

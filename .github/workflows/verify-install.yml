@@ -9,7 +9,7 @@ on:
       tag:
         description: "Release etiketi"
         required: true
-        default: "v1.1.2"
+        default: "v1.2.0"
 
 permissions:
   contents: read
@@ -72,7 +72,7 @@ jobs:
       - name: Uygulamayı uçtan uca dene (belge aç, 5 sesle oku, zorlama)
         shell: pwsh
         run: |
-          foreach ($doc in "bideng-test.pdf", "bideng-test.docx", "farsca-test.txt") {
+          foreach ($doc in "bideng-test.pdf", "bideng-test.docx", "farsca-test.txt", "taranmis.pdf", "taranmis-farsca.pdf") {
             $home2 = New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\bh-$doc"
             $env:BIDENG_HOME = $home2.FullName
             $env:BIDENG_SELFTEST = (Resolve-Path "filiz-desktop/src/desktopTest/resources/testdocs/$doc").Path
@@ -117,7 +117,7 @@ jobs:
       - name: Uygulamayı uçtan uca dene (.deb; belge aç, 5 sesle oku, zorlama)
         run: |
           D=filiz-desktop/src/desktopTest/resources/testdocs
-          BIDENG_SELFTEST_MUTE=1 xvfb-run -a filiz-desktop/tools/selftest_package.sh /opt/bideng/bin/Bideng $D/bideng-test.pdf $D/bideng-test.docx $D/farsca-test.txt
+          BIDENG_SELFTEST_MUTE=1 xvfb-run -a filiz-desktop/tools/selftest_package.sh /opt/bideng/bin/Bideng $D/bideng-test.pdf $D/bideng-test.docx $D/farsca-test.txt $D/taranmis.pdf $D/taranmis-farsca.pdf
       - name: AppImage — içerik ve başlatma
         run: |
           chmod +x dl/*.AppImage
@@ -172,4 +172,4 @@ jobs:
       - name: Uygulamayı uçtan uca dene (belge aç, 5 sesle oku, zorlama)
         run: |
           D=filiz-desktop/src/desktopTest/resources/testdocs
-          BIDENG_SELFTEST_MUTE=1 filiz-desktop/tools/selftest_package.sh /Applications/Bideng.app/Contents/MacOS/Bideng $D/bideng-test.pdf $D/bideng-test.docx $D/farsca-test.txt
+          BIDENG_SELFTEST_MUTE=1 filiz-desktop/tools/selftest_package.sh /Applications/Bideng.app/Contents/MacOS/Bideng $D/bideng-test.pdf $D/bideng-test.docx $D/farsca-test.txt $D/taranmis.pdf $D/taranmis-farsca.pdf

@@ -16,7 +16,7 @@ suspend fun runSelfTest(state: AppState, document: File): Boolean {
     log("içe aktarılıyor ${document.name}")
     state.importFiles(listOf(document))
     var lastToast: String? = null
-    val reader = withTimeoutOrNull(30_000) {
+    val reader = withTimeoutOrNull(180_000) { // taranmış PDF: OCR sürer
         while (state.reader == null) {
             state.toast?.message?.let { lastToast = it }
             delay(50)

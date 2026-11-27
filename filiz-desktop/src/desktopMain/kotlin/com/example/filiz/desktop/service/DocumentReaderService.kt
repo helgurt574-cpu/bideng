@@ -1,6 +1,7 @@
 package com.example.filiz.desktop.service
 
 import org.apache.pdfbox.Loader
+import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.extractor.WordExtractor
 import org.jsoup.Jsoup
@@ -25,11 +26,12 @@ object DocumentReaderService {
 
     fun readDocument(file: File): String = readDocumentContent(file).text
 
-    fun readDocumentContent(file: File): DocumentContent {
+    /** [onOcrPage]: taranmış PDF'te OCR ilerlemesi (okunan sayfa, toplam sayfa). */
+    fun readDocumentContent(file: File, onOcrPage: ((Int, Int) -> Unit)? = null): DocumentContent {
         val extension = file.extension.lowercase()
         return runCatching {
             when (extension) {
-                "pdf" -> readPdf(file)
+                "pdf" -> readPdf(file, onOcrPage)
                 "epub" -> readEpub(file)
                 "docx" -> locationContent(normalizeTabularLayout(zipEntry(file, "word/document.xml") { parseOfficeXml(it, wordProcessingML = true) }))
                 "odt" -> locationContent(normalizeTabularLayout(zipEntry(file, "content.xml") { parseOfficeXml(it, wordProcessingML = false) }))
@@ -49,7 +51,7 @@ object DocumentReaderService {
 
     // ---------- PDF ----------
 
-    private fun readPdf(file: File): DocumentContent {
+    private fun readPdf(file: File, onOcrPage: ((Int, Int) -> Unit)?): DocumentContent {
         Loader.loadPDF(file).use { document ->
             if (document.isEncrypted) throw UnreadableDocumentException("Bu PDF şifreli olduğu için açılamıyor.")
             val stripper = LigatureRepairingTextStripper().apply { sortByPosition = true }
@@ -64,14 +66,28 @@ object DocumentReaderService {
                     .let(::reflowPdfLines)
                 DocumentPage(number = number, label = "Sayfa $number", title = "Sayfa $number", text = text)
             }
-            if (pages.all { it.text.isBlank() }) {
-                throw UnreadableDocumentException(
-                    "Bu PDF taranmış (yalnızca resimden oluşan) bir belge gibi görünüyor. " +
-                        "Masaüstü sürümü taranmış PDF'leri henüz okuyamıyor; Android sürümü OCR ile açabilir."
-                )
-            }
+            if (pages.all { it.text.isBlank() }) return readScannedPdf(file, document, onOcrPage)
             return buildContent(pages.filter { it.text.isNotBlank() }, PageUnit.RealPage)
         }
+    }
+
+    /** Metin katmanı olmayan (taranmış) PDF: sayfalar resim olarak işlenip OCR ile okunur. */
+    private fun readScannedPdf(file: File, document: PDDocument, onOcrPage: ((Int, Int) -> Unit)?): DocumentContent {
+        if (!OcrService.isAvailable()) {
+            throw UnreadableDocumentException(
+                "Bu PDF taranmış (yalnızca resimden oluşan) bir belge gibi görünüyor; " +
+                    "yazı tanıma (OCR) dil verileri bulunamadığı için okunamıyor."
+            )
+        }
+        val pages = OcrService.readPdf(file, document, onOcrPage).mapIndexed { index, raw ->
+            val number = index + 1
+            val text = raw.replace(Regex("[ \\t]+\\n"), "\n").replace(Regex("\\n{3,}"), "\n\n").trim().let(::reflowPdfLines)
+            DocumentPage(number = number, label = "Sayfa $number", title = "Sayfa $number", text = text)
+        }
+        if (pages.all { it.text.isBlank() }) {
+            throw UnreadableDocumentException("Bu taranmış PDF'te okunabilir yazı bulunamadı.")
+        }
+        return buildContent(pages.filter { it.text.isNotBlank() }, PageUnit.RealPage)
     }
 
     /**
